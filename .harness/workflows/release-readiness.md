@@ -39,8 +39,8 @@ Use this checklist before deploying any release to a production or staging envir
 
 ### Regulatory / Compliance
 
-- [ ] If HTKK/eTax XML schemas changed: schema version config is updated and verified
-- [ ] If NĐ changes affect business logic: rule engine updated and tested
+- [ ] If an externally-governed export schema changed: the schema version config is updated and verified
+- [ ] If regulatory changes affect business logic: rule engine updated and tested
 - [ ] Audit log writes are confirmed working for all new mutations
 - [ ] Data retention policies unchanged or explicitly reviewed
 
@@ -56,8 +56,10 @@ Use this checklist before deploying any release to a production or staging envir
 
 After deploying to staging:
 
-1. Run the full Playwright E2E suite against staging: `E2E_BASE_URL=https://staging.finpilot.vn pnpm e2e`
-2. Manually verify the core user loop: Login → Client select → Upload invoice → Wait for OCR → Reconcile → Export XML
+1. Run the full Playwright E2E suite against staging: `E2E_BASE_URL=https://staging.example.com pnpm e2e`
+2. Manually verify the core user loop: Login → select context → create/ingest a record → process it → review → export
+
+   > **Example (accounting SaaS):** Login → Client select → Upload invoice → Wait for OCR → Reconcile → Export XML
 3. Verify audit log entries are created for each step
 4. Verify tenant isolation: log in as tenant B, confirm tenant A's data is not visible
 
@@ -70,8 +72,8 @@ Initiate rollback if any of the following occur after deployment:
 - E2E tests fail against production/staging
 - Tenant isolation breach detected
 - Audit log writes are failing
-- XML export produces invalid schema output
-- OCR confidence scores are not being stored
+- Export produces output that fails the target schema validation
+- Extraction confidence scores are not being stored
 
 Document rollback decisions in an incident report.
 

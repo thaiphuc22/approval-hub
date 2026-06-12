@@ -106,7 +106,7 @@ Agent role: [e.g., Backend Developer]
 [One sentence: what is being built]
 
 ## Current phase
-[e.g., Foundation 1 — Master Data Schema, implementation step 3 of 5]
+[e.g., Foundation 1 — Core Data Schema, implementation step 3 of 5]
 
 ## What was done this session
 - [specific action taken]
@@ -124,7 +124,7 @@ Agent role: [e.g., Backend Developer]
 [Exactly what the next session should do first — specific enough that it requires no re-analysis]
 
 ## Blockers for next session
-[Anything that prevents the next action — e.g., "waiting for human approval on TaxProfile schema"]
+[Anything that prevents the next action — e.g., "waiting for human approval on the core schema"]
 
 ## Files touched this session
 - [path] — [what changed]

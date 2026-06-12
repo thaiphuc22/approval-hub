@@ -41,9 +41,9 @@ Use this when reviewing a PR. Fill each section. Issue a clear decision at the e
 
 ### Data Integrity
 
-- [ ] OCR confidence scores are stored alongside parsed fields
-- [ ] Reconciliation discrepancies are flagged, not auto-resolved
-- [ ] HTKK/eTax XML schema version is referenced from config, not hardcoded
+- [ ] Confidence scores from extraction/ingestion are stored alongside parsed fields
+- [ ] Conflicting data from multiple sources is flagged, not silently auto-resolved
+- [ ] Externally-governed schema versions are referenced from config, not hardcoded
 
 ### Error Handling
 

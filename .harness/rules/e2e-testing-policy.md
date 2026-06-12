@@ -1,24 +1,24 @@
 # E2E Testing Policy
 
-This policy governs all Playwright E2E testing in FinPilot. Any coding agent must follow it without guessing.
+This policy governs all Playwright E2E testing in this project. Any coding agent must follow it without guessing.
 
 ---
 
 ## Directory Structure
+
+The names below are illustrative — substitute your own feature folders and page objects. The structure (tests / fixtures / pages / helpers / test-data) is the part to keep.
 
 ```
 apps/e2e/
   playwright.config.ts          # single config file; all projects defined here
   tests/
     auth/                       # login, logout, session expiry, protected routes
-    dashboard/                  # multi-client view, client switching, status indicators
-    invoices/                   # upload, OCR status, manual review queue, OCR failure
-    reconciliation/             # 3-way match, flag, approve, override
-    tax-filing/                 # XML export, submission, export history
-    chatbot/                    # AI query, source display, error handling
-    clients/                    # client CRUD, archiving
-    billing/                    # plan limits, upgrade prompt
+    dashboard/                  # multi-resource view, switching, status indicators
+    records/                    # upload, extraction status, manual review queue, failure
+    review-flow/                # multi-source match, flag, approve, override
+    export/                     # export generation, submission, export history
     rbac/                       # role-based access, tenant isolation
+    billing/                    # plan limits, upgrade prompt
   fixtures/
     auth.fixture.ts             # per-role storage state management
     database.fixture.ts         # test DB setup/teardown, transaction helpers
@@ -26,19 +26,18 @@ apps/e2e/
     BasePage.ts                 # shared navigation, common assertions
     LoginPage.ts
     DashboardPage.ts
-    InvoiceUploadPage.ts
-    InvoiceReviewPage.ts
-    ReconciliationPage.ts
-    TaxFilingPage.ts
-    ChatbotPage.ts
+    RecordUploadPage.ts
+    RecordReviewPage.ts
+    ReviewFlowPage.ts
+    ExportPage.ts
   helpers/
-    api-setup.ts                # create tenants, clients, invoices, users via API
-    file-helpers.ts             # load sample HĐDT files
+    api-setup.ts                # create tenants, resources, records, users via API
+    file-helpers.ts             # load sample upload files
     wait-helpers.ts             # named wait utilities
   test-data/
-    sample-invoices/            # realistic HĐDT PDFs and XMLs
-      valid-vat-invoice.pdf
-      blurry-scan.pdf           # for low-confidence tests
+    sample-records/             # realistic sample files (PDFs, XMLs, etc.)
+      valid-record.pdf
+      low-quality-scan.pdf      # for low-confidence tests
       invalid-format.exe        # for rejection tests
     seed-scripts/
       baseline.sql              # applied before test suite
@@ -111,17 +110,17 @@ export default defineConfig({
 ### Priority Order
 
 1. `page.getByRole('button', { name: /upload/i })` — buttons, links, checkboxes, radios, headings
-2. `page.getByLabel('Invoice file')` — labeled form inputs
-3. `page.getByText('Reconciliation complete')` — unique visible text
-4. `page.getByPlaceholder('Search clients...')` — inputs with placeholders
-5. `page.getByTestId('invoice-upload-dropzone')` — only when 1–4 cannot uniquely identify
+2. `page.getByLabel('Record file')` — labeled form inputs
+3. `page.getByText('Review complete')` — unique visible text
+4. `page.getByPlaceholder('Search resources...')` — inputs with placeholders
+5. `page.getByTestId('record-upload-dropzone')` — only when 1–4 cannot uniquely identify
 
 ### Prohibited
 
 ```ts
 // NEVER — CSS class
 page.locator('.btn-primary')
-page.locator('.invoice-row')
+page.locator('.record-row')
 
 // NEVER — index-based
 page.locator('table tr:nth-child(3)')
@@ -138,24 +137,23 @@ await page.waitForTimeout(3000)
 
 Format: `kebab-case`, scoped to component purpose.
 
+Example test IDs (accounting SaaS):
+
 ```
-invoice-upload-dropzone
-invoice-status-processing
-invoice-status-complete
-invoice-status-needs-review
-ocr-result-panel
-ocr-field-{fieldName}                  # e.g., ocr-field-seller-tax-id
-ocr-field-low-confidence               # applied to any field below threshold
-reconciliation-row-{invoiceId}
-reconciliation-flag-button
-reconciliation-approve-button
-client-card-{clientId}
-client-switcher
-tax-export-button
-tax-export-history-row-{exportId}
-chatbot-input
-chatbot-response-panel
-chatbot-source-citation
+record-upload-dropzone
+record-status-processing
+record-status-complete
+record-status-needs-review
+extraction-result-panel
+extraction-field-{fieldName}           # e.g., extraction-field-seller-id
+extraction-field-low-confidence        # applied to any field below threshold
+review-flow-row-{recordId}
+review-flow-flag-button
+review-flow-approve-button
+resource-card-{resourceId}
+resource-switcher
+export-button
+export-history-row-{exportId}
 ```
 
 ---
@@ -172,14 +170,14 @@ import { LoginPage } from '../../pages/LoginPage'
 setup('authenticate as accountant', async ({ page }) => {
   const login = new LoginPage(page)
   await login.goto()
-  await login.login('accountant@test.vn', process.env.E2E_ACCOUNTANT_PASSWORD!)
+  await login.login('accountant@test.example', process.env.E2E_ACCOUNTANT_PASSWORD!)
   await page.context().storageState({ path: 'playwright/.auth/accountant.json' })
 })
 
 setup('authenticate as admin', async ({ page }) => {
   const login = new LoginPage(page)
   await login.goto()
-  await login.login('admin@test.vn', process.env.E2E_ADMIN_PASSWORD!)
+  await login.login('admin@test.example', process.env.E2E_ADMIN_PASSWORD!)
   await page.context().storageState({ path: 'playwright/.auth/admin.json' })
 })
 ```
@@ -187,12 +185,12 @@ setup('authenticate as admin', async ({ page }) => {
 ### Test File Using Storage State
 
 ```ts
-// tests/invoices/upload.spec.ts
+// tests/records/upload.spec.ts
 import { test, expect } from '@playwright/test'
 // No login needed — storageState is loaded from playwright.config.ts
 
-test('uploads a valid invoice', async ({ page }) => {
-  await page.goto('/clients/test-client-1/invoices/upload')
+test('uploads a valid record', async ({ page }) => {
+  await page.goto('/resources/test-resource-1/records/upload')
   // ...
 })
 ```
@@ -205,10 +203,10 @@ test('uploads a valid invoice', async ({ page }) => {
 
 ```ts
 import { test, expect } from '@playwright/test'
-import { createTestClient, createTestInvoice } from '../../helpers/api-setup'
+import { createTestResource, createTestRecord } from '../../helpers/api-setup'
 
 test.beforeAll(async ({ request }) => {
-  await createTestClient(request, { tenantId: 'tenant-a', name: 'SME Test Co' })
+  await createTestResource(request, { tenantId: 'tenant-a', name: 'Test Resource Co' })
 })
 
 test.afterAll(async ({ request }) => {
@@ -230,17 +228,17 @@ Never assume shared data exists from a previous run.
 
 ```ts
 // CORRECT — wait for a specific state
-await page.getByTestId('ocr-result-panel').waitFor({ state: 'visible', timeout: 60_000 })
-await page.getByTestId('invoice-status-processing').waitFor({ state: 'hidden', timeout: 60_000 })
+await page.getByTestId('extraction-result-panel').waitFor({ state: 'visible', timeout: 60_000 })
+await page.getByTestId('record-status-processing').waitFor({ state: 'hidden', timeout: 60_000 })
 
 // CORRECT — wait for network idle after action
 await page.getByRole('button', { name: /upload/i }).click()
-await page.waitForURL(/\/invoices\/[a-z0-9-]+/)
+await page.waitForURL(/\/records\/[a-z0-9-]+/)
 
 // CORRECT — wait for API response
 const [response] = await Promise.all([
-  page.waitForResponse(r => r.url().includes('/api/invoices') && r.status() === 202),
-  page.getByTestId('invoice-upload-dropzone').setInputFiles('test-data/sample-invoices/valid-vat-invoice.pdf'),
+  page.waitForResponse(r => r.url().includes('/api/records') && r.status() === 202),
+  page.getByTestId('record-upload-dropzone').setInputFiles('test-data/sample-records/valid-record.pdf'),
 ])
 
 // WRONG — arbitrary timeout
@@ -252,35 +250,35 @@ await page.waitForTimeout(5000)
 ## Page Object Model Pattern
 
 ```ts
-// pages/InvoiceUploadPage.ts
+// pages/RecordUploadPage.ts
 import { Page, Locator } from '@playwright/test'
 
-export class InvoiceUploadPage {
+export class RecordUploadPage {
   readonly page: Page
   readonly dropzone: Locator
   readonly statusProcessing: Locator
   readonly statusComplete: Locator
-  readonly ocrResultPanel: Locator
+  readonly extractionResultPanel: Locator
 
   constructor(page: Page) {
     this.page = page
-    this.dropzone = page.getByTestId('invoice-upload-dropzone')
-    this.statusProcessing = page.getByTestId('invoice-status-processing')
-    this.statusComplete = page.getByTestId('invoice-status-complete')
-    this.ocrResultPanel = page.getByTestId('ocr-result-panel')
+    this.dropzone = page.getByTestId('record-upload-dropzone')
+    this.statusProcessing = page.getByTestId('record-status-processing')
+    this.statusComplete = page.getByTestId('record-status-complete')
+    this.extractionResultPanel = page.getByTestId('extraction-result-panel')
   }
 
-  async goto(clientId: string) {
-    await this.page.goto(`/clients/${clientId}/invoices/upload`)
+  async goto(resourceId: string) {
+    await this.page.goto(`/resources/${resourceId}/records/upload`)
   }
 
   async uploadFile(filePath: string) {
     await this.dropzone.setInputFiles(filePath)
   }
 
-  async waitForOcrComplete(timeout = 60_000) {
+  async waitForExtractionComplete(timeout = 60_000) {
     await this.statusProcessing.waitFor({ state: 'hidden', timeout })
-    await this.ocrResultPanel.waitFor({ state: 'visible', timeout })
+    await this.extractionResultPanel.waitFor({ state: 'visible', timeout })
   }
 }
 ```
@@ -294,7 +292,7 @@ pnpm e2e                               # all tests, headless
 pnpm e2e:ui                            # Playwright UI mode (interactive)
 pnpm e2e:headed                        # headed browser (debug locally)
 pnpm e2e:report                        # open HTML report from last run
-pnpm e2e -- --grep "reconciliation"   # run tests matching pattern
+pnpm e2e -- --grep "review-flow"      # run tests matching pattern
 pnpm e2e -- --project accountant-chromium  # run specific project
 pnpm playwright install --with-deps chromium firefox  # install browsers
 ```
@@ -308,7 +306,7 @@ A test is flaky if it passes sometimes and fails other times on the same code.
 1. A flaky test must **not** be silently accepted — create a GitHub issue immediately.
 2. Do not increase `retries` to hide flakiness.
 3. Common causes to investigate:
-   - Race condition between OCR job and test assertion → fix with `waitFor`
+   - Race condition between an async job and test assertion → fix with `waitFor`
    - Shared test data mutated by a concurrent test → fix with data isolation
    - Selector matches multiple elements → make selector more specific
    - Network timeout in CI → increase timeout with a comment explaining why
@@ -322,7 +320,7 @@ A test may be skipped only with a documented reason:
 
 ```ts
 test.skip(
-  'reconciliation XML export — skipped: XML export not yet implemented (see issue #42)',
+  'review-flow export — skipped: export not yet implemented (see issue #42)',
   async () => { /* ... */ }
 )
 ```

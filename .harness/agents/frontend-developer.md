@@ -18,20 +18,30 @@ Implements user interfaces using Next.js App Router. Owns routing, client state,
 
 ## Key UI Surfaces
 
-### Multi-Client Dashboard
-The core screen. An accountant sees all their SME clients with status indicators (outstanding invoices, approaching tax deadlines, reconciliation issues). The active client is always visible in context. Switching clients must not leak data between clients.
+### Multi-Resource Dashboard
+A common core screen in multi-tenant products. The user sees all the resources they manage with status indicators (outstanding items, approaching deadlines, flagged issues). The active resource is always visible in context. Switching resources must not leak data between them.
 
-### Invoice Upload
-Drag-and-drop or file picker for HĐDT uploads. After upload, the UI shows processing status while OCR runs asynchronously. Results display when ready — confidence score must be visible to the user for low-confidence fields. Low-confidence fields must be visually distinct.
+> **Example (accounting SaaS):** An accountant sees all their SME clients with status indicators (outstanding invoices, approaching tax deadlines, reconciliation issues); switching clients must not leak data between clients.
 
-### Reconciliation Review
-Three-pane view: portal data vs seller data vs buyer OCR. Discrepancies are highlighted. The accountant confirms, flags, or overrides. This is the highest-value screen in the product.
+### Record Upload
+Drag-and-drop or file picker for uploading records. After upload, the UI shows processing status while extraction runs asynchronously. Results display when ready — confidence score must be visible to the user for low-confidence fields. Low-confidence fields must be visually distinct.
 
-### Tax Filing
-Summary view of invoices ready for export. XML generation is triggered here. Shows export history with schema version.
+> **Example (accounting SaaS):** Upload of an e-invoice (HĐDT) triggers PaddleOCR; the OCR confidence score is shown for low-confidence fields.
 
-### AI Chatbot Panel
-Sidebar or overlay panel for querying Vietnamese tax regulations. Responses must show a confidence/source note. The chatbot is an assistant — responses are advisory, not authoritative.
+### Multi-Source Comparison Review
+A view that compares multiple data sources of differing trust levels side by side. Discrepancies are highlighted. The user confirms, flags, or overrides. This is often the highest-value screen in the product.
+
+> **Example (accounting SaaS):** A three-pane reconciliation view (tax-portal data vs seller-declared data vs buyer OCR copy) where the accountant confirms, flags, or overrides discrepancies.
+
+### Export
+Summary view of records ready for export. Export generation is triggered here. Shows export history with schema version.
+
+> **Example (accounting SaaS):** Tax-filing screen where XML generation against the HTKK/eTax schema is triggered and export history shows the schema version used.
+
+### AI Assistant Panel
+Sidebar or overlay panel for querying a knowledge base. Responses must show a confidence/source note. The assistant is advisory — responses are not authoritative.
+
+> **Example (accounting SaaS):** A chatbot answering questions over Vietnamese tax regulations, with each response carrying a source citation.
 
 ---
 
@@ -41,10 +51,10 @@ Every interactive element that a Playwright test might need to reach must have a
 
 1. **Prefer semantic HTML**: buttons, inputs, links with descriptive labels come first.
 2. **Prefer accessible attributes**: `aria-label`, `role`, `name`, `placeholder` — these are what `getByRole` and `getByLabel` target.
-3. **Use `data-testid`** only when semantic selectors cannot uniquely identify an element (e.g., a list of identical-looking client cards where the distinguishing factor is data, not label).
+3. **Use `data-testid`** only when semantic selectors cannot uniquely identify an element (e.g., a list of identical-looking resource cards where the distinguishing factor is data, not label).
 4. **Never use CSS class selectors** for testability. Classes are visual, not semantic; they change.
 5. **Never use nth-child or index-based selectors** unless the test is specifically about order.
-6. **`data-testid` naming convention**: `kebab-case`, scoped to component: `data-testid="client-card"`, `data-testid="invoice-upload-dropzone"`, `data-testid="reconciliation-row-12345"`.
+6. **`data-testid` naming convention**: `kebab-case`, scoped to component: `data-testid="resource-card"`, `data-testid="record-upload-dropzone"`, `data-testid="comparison-row-12345"`.
 
 Add `data-testid` to:
 - All primary action buttons (submit, save, export, upload, approve, flag)
@@ -105,7 +115,7 @@ Do not render nothing while loading. Do not show a blank screen on error.
 - **UI implementation** with loading/error/empty states
 - **Stable selectors** documented for the QA agent where added
 - **Frontend unit/component tests**
-- **E2E readiness notes**: document any complex interaction the QA agent needs to know about (e.g., OCR result appears via WebSocket after variable delay)
+- **E2E readiness notes**: document any complex interaction the QA agent needs to know about (e.g., an async extraction result appears via WebSocket after variable delay)
 
 ---
 

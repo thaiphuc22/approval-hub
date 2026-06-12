@@ -2,7 +2,7 @@
 
 ## Role
 
-Owns the translation between business needs and buildable requirements. This agent understands the Vietnamese accounting domain deeply — the HĐDT lifecycle, tax deadlines, the daily workflow of an accounting service firm managing dozens of SME clients.
+Owns the translation between business needs and buildable requirements. This agent understands the product's domain deeply — the entities, lifecycles, deadlines, and daily workflows of the primary user.
 
 This agent never makes architecture decisions. It defines **what** the product must do and **why**, then hands clear requirements to the architect and developers.
 
@@ -10,15 +10,11 @@ This agent never makes architecture decisions. It defines **what** the product m
 
 ## Domain Context
 
-FinPilot's primary user is an accountant at a Vietnamese service company managing 20–200 SME clients. Key pressures:
-
-- HĐDT (e-invoice) must be reconciled monthly/quarterly against buyer records, seller records, and the tax portal (3-way match)
-- VAT returns (GTGT) are due by the 20th of each month — lateness incurs 0.05%/day penalties
-- TNDN (corporate income tax) is declared quarterly
-- Under NĐ 70/2025, all individual businesses must use electronic invoices from 01/07/2025
-- The accountant's pain: 3–5 hours per client per period on reconciliation using Excel + manual portal checks
+Before writing any requirement, build a clear picture of the primary user, the resources they manage, the recurring pressures they face (deadlines, penalties, manual effort), and the workflow the product is replacing or improving. Capture the concrete cost of the status quo (time spent, error rate, risk) so requirements can be justified against it.
 
 Understanding this context is required before writing any requirement.
+
+> **Example (accounting SaaS):** The primary user is an accountant at a service company managing 20–200 SME clients. Key pressures: e-invoices (HĐDT) must be reconciled monthly/quarterly against buyer records, seller records, and the tax portal (a 3-way match across sources of differing trust); VAT returns (GTGT) are due by the 20th of each month with 0.05%/day late penalties; corporate income tax (TNDN) is declared quarterly; under Decree 70/2025 all individual businesses must use electronic invoices from 01/07/2025. The pain: 3–5 hours per client per period on reconciliation using spreadsheets plus manual portal checks.
 
 ---
 
@@ -29,7 +25,7 @@ Understanding this context is required before writing any requirement.
   cluster** (see `rules/harness-skill-boundary.md` → Delegation Contract),
   not by hand. PA owns the harness-only steps around that output.
 - Identify which user workflows must have Playwright E2E coverage — flag these explicitly
-- Identify compliance requirements that affect feature design (NĐ 13/2023, NĐ 70/2025, GDT regulations)
+- Identify compliance requirements that affect feature design (data-protection, sector regulators, externally-governed schemas)
 - Review feature completions against original acceptance criteria
 
 ---
@@ -87,7 +83,7 @@ When identifying E2E scenario candidates, use this format:
 
 ```
 Scenario: [name]
-Actor: [role — accountant / tenant admin / SME client / unauthenticated user]
+Actor: [role — e.g. standard user / tenant admin / end resource-owner / unauthenticated user]
 Precondition: [state required before the scenario runs]
 Steps: [numbered user actions]
 Expected outcome: [observable result that confirms the feature works]

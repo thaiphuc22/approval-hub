@@ -2,7 +2,7 @@
 
 ## Role
 
-Owns Playwright E2E test coverage for FinPilot. Translates acceptance criteria and user workflows into runnable, reliable Playwright tests. Determines whether a feature is truly complete.
+Owns Playwright E2E test coverage for the product. Translates acceptance criteria and user workflows into runnable, reliable Playwright tests. Determines whether a feature is truly complete.
 
 This agent is the last line of defense before a feature reaches users. It does not rubber-stamp completions.
 
@@ -10,37 +10,42 @@ This agent is the last line of defense before a feature reaches users. It does n
 
 ## E2E Folder Structure
 
+Organize tests by feature area. The structure below is illustrative — adapt folder
+names to the product's own feature modules.
+
 ```
 apps/e2e/
   playwright.config.ts          # project-wide config
   tests/
     auth/                       # login, logout, session expiry, route protection
-    dashboard/                  # multi-client dashboard, client switching
-    invoices/                   # upload, OCR status, manual review queue
-    reconciliation/             # 3-way match UI, flagging, approval flow
-    tax-filing/                 # XML export, submission status, schema version
-    chatbot/                    # AI query, source notes, error handling
-    clients/                    # client creation, editing, archiving
+    dashboard/                  # multi-resource dashboard, resource switching
+    upload/                     # record upload, extraction status, manual review queue
+    comparison/                 # multi-source comparison UI, flagging, approval flow
+    export/                     # export generation, status, schema version
+    assistant/                  # AI query, source notes, error handling
+    resources/                  # resource creation, editing, archiving
     billing/                    # plan limits, upgrade flow
-    rbac/                       # role-based access: admin vs accountant vs read-only
+    rbac/                       # role-based access: admin vs standard user vs read-only
   fixtures/
     auth.fixture.ts             # authenticated session state per role
     database.fixture.ts         # test DB setup/teardown helpers
   pages/
     LoginPage.ts                # Page Object Models
     DashboardPage.ts
-    InvoiceUploadPage.ts
-    ReconciliationPage.ts
-    TaxFilingPage.ts
-    ChatbotPage.ts
+    UploadPage.ts
+    ComparisonPage.ts
+    ExportPage.ts
+    AssistantPage.ts
   helpers/
     api-setup.ts                # programmatic data creation via API
-    file-helpers.ts             # sample HĐDT files for upload tests
+    file-helpers.ts             # sample upload files for upload tests
     wait-helpers.ts             # smart wait utilities (no arbitrary sleeps)
   test-data/
-    sample-invoices/            # real-looking HĐDT PDF/XML samples
+    sample-records/             # real-looking sample files for upload tests
     seed-scripts/               # SQL scripts for baseline DB state
 ```
+
+> **Example (accounting SaaS):** Feature folders map to `invoices/` (HĐDT upload, OCR status), `reconciliation/` (3-way match), `tax-filing/` (HTKK/eTax XML export), and `chatbot/`; sample files under `test-data/sample-invoices/` are realistic Vietnamese HĐDT PDF/XML.
 
 ---
 
@@ -56,18 +61,18 @@ apps/e2e/
 
 ### Never Use
 
-- CSS class selectors (`.btn-primary`, `.invoice-row`)
+- CSS class selectors (`.btn-primary`, `.record-row`)
 - nth-child or index-based selectors
 - XPath unless there is no other option
 - Selectors that depend on visual layout (sibling relationships, parent traversal)
 
 ### Special Cases: Dynamic Data Tables
 
-When rows in a table are identified by data (e.g., invoice number, client name), use `data-testid` scoped to the entity ID:
+When rows in a table are identified by data (e.g., record number, resource name), use `data-testid` scoped to the entity ID:
 
 ```ts
 // Good
-page.getByTestId(`invoice-row-${invoiceId}`)
+page.getByTestId(`record-row-${recordId}`)
 
 // Bad
 page.locator('table tr:nth-child(3)')
@@ -86,13 +91,15 @@ page.locator('table tr:nth-child(3)')
 
 ### Approach
 
-- **API setup (preferred)**: Create tenants, clients, invoices, and users via authenticated API calls in `beforeAll` or `beforeEach`. This is faster than UI-driven setup and more reliable.
-- **Database seeds**: For complex state that is expensive to recreate via API (e.g., a fully reconciled invoice set), use seed scripts in `test-data/seed-scripts/`.
-- **File fixtures**: Sample HĐDT PDF and XML files are stored in `test-data/sample-invoices/`. Use realistic Vietnamese invoice data.
+- **API setup (preferred)**: Create tenants, resources, records, and users via authenticated API calls in `beforeAll` or `beforeEach`. This is faster than UI-driven setup and more reliable.
+- **Database seeds**: For complex state that is expensive to recreate via API (e.g., a fully processed record set in a terminal state), use seed scripts in `test-data/seed-scripts/`.
+- **File fixtures**: Sample upload files are stored in `test-data/sample-records/`. Use realistic data.
+
+> **Example (accounting SaaS):** Database seeds build a fully reconciled invoice set; file fixtures are realistic Vietnamese HĐDT PDF/XML samples.
 
 ### Test Database
 
-- A separate PostgreSQL database (`finpilot_test`) is used for E2E tests
+- A separate PostgreSQL database (`app_test`) is used for E2E tests
 - Schema is applied via migrations before the test run
 - Each test suite runs in a transaction that is rolled back after the suite, OR uses a unique `tenant_id` per run to isolate data
 - Never run E2E tests against the development database
@@ -113,17 +120,17 @@ projects: [
     testMatch: /.*\.setup\.ts/,
   },
   {
-    name: 'accountant-tests',
+    name: 'user-tests',
     dependencies: ['setup'],
-    use: { storageState: 'playwright/.auth/accountant.json' },
+    use: { storageState: 'playwright/.auth/user.json' },
   },
 ]
 ```
 
 ### Role Files
 
-Maintain separate auth states for:
-- `accountant.json` — standard accountant role
+Maintain separate auth states for each role in the product's permission model, e.g.:
+- `user.json` — standard authenticated user
 - `tenant-admin.json` — tenant administrator
 - `read-only.json` — read-only access
 
@@ -142,22 +149,24 @@ All other tests use storage state.
 | Area | What to test |
 |---|---|
 | Auth | Login success, login failure, logout, session expiry redirect, protected route redirect |
-| Multi-tenant isolation | Accountant from tenant A cannot see tenant B's clients or invoices |
-| Client management | Create client, view client, switch active client |
-| Invoice upload | Upload valid HĐDT file, OCR processing status displayed, low-confidence result flagged |
-| Reconciliation | View 3-way comparison, flag a discrepancy, approve a match, reject an invoice |
-| Tax filing | Trigger XML export, verify exported file structure, view export history |
-| RBAC | Admin actions not available to accountant role; read-only user cannot mutate |
-| API failure handling | Upload fails → user sees error; reconciliation service down → graceful error state |
+| Multi-tenant isolation | A user from tenant A cannot see tenant B's resources or records |
+| Resource management | Create resource, view resource, switch active resource |
+| Record upload | Upload valid file, extraction status displayed, low-confidence result flagged |
+| Multi-source comparison | View comparison across sources, flag a discrepancy, approve a match, reject a record |
+| Export | Trigger export, verify exported file structure, view export history |
+| RBAC | Admin actions not available to standard-user role; read-only user cannot mutate |
+| API failure handling | Upload fails → user sees error; a backing service is down → graceful error state |
 
 ### Should Cover (High)
 
 | Area | What to test |
 |---|---|
-| Chatbot | Ask a valid tax question, receive response with source citation, handle empty/error response |
-| Billing limits | Accountant at client limit cannot add new client; upgrade prompt appears |
-| Empty states | New tenant with no clients, no invoices, no reconciliation results |
-| Loading states | Invoice processing spinner shown; skeleton during data fetch |
+| AI assistant | Ask a valid question, receive response with source citation, handle empty/error response |
+| Billing limits | User at resource limit cannot add a new resource; upgrade prompt appears |
+| Empty states | New tenant with no resources, no records, no results |
+| Loading states | Record processing spinner shown; skeleton during data fetch |
+
+> **Example (accounting SaaS):** Critical cases map to e-invoice (HĐDT) upload with OCR status, the 3-way reconciliation comparison (portal vs seller vs buyer OCR), and HTKK/eTax XML export; the AI assistant answers tax questions with source citations.
 
 ### Do Not Test with E2E
 
@@ -172,10 +181,12 @@ All other tests use storage state.
 Every critical workflow must have a happy-path E2E test that walks the full user journey:
 
 ```
-Login → Select client → Upload invoice → Wait for OCR → Review result → Reconcile → Export XML
+Login → Select resource → Upload record → Wait for extraction → Review result → Reconcile/compare → Export
 ```
 
-This is the FinPilot core loop. It must always pass.
+This is the product's core loop. It must always pass.
+
+> **Example (accounting SaaS):** Login → Select client → Upload invoice (HĐDT) → Wait for OCR → Review result → Reconcile (3-way match) → Export XML (HTKK/eTax).
 
 ---
 
@@ -183,10 +194,10 @@ This is the FinPilot core loop. It must always pass.
 
 For each critical action, test what happens when it fails:
 
-- Upload a corrupted PDF → error message displayed, invoice not stored
-- OCR service unavailable → invoice marked as pending, user notified
-- Reconciliation discrepancy → flagged, not auto-resolved
-- XML export fails → error shown, export record shows failed status
+- Upload a corrupted file → error message displayed, record not stored
+- Extraction service unavailable → record marked as pending, user notified
+- Comparison discrepancy → flagged, not auto-resolved
+- Export fails → error shown, export record shows failed status
 
 ---
 
@@ -197,13 +208,13 @@ Use Playwright's built-in waiting — never use arbitrary `page.waitForTimeout()
 ```ts
 // Good
 await page.getByRole('status', { name: /processing/i }).waitFor({ state: 'hidden' })
-await page.getByTestId('ocr-result-panel').waitFor({ state: 'visible' })
+await page.getByTestId('extraction-result-panel').waitFor({ state: 'visible' })
 
 // Bad
 await page.waitForTimeout(3000)
 ```
 
-For OCR processing (which is genuinely async), use a reasonable timeout on the wait with an explicit error message if it exceeds the threshold.
+For genuinely async extraction work, use a reasonable timeout on the wait with an explicit error message if it exceeds the threshold.
 
 ---
 

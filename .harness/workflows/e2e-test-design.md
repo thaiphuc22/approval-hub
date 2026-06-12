@@ -60,7 +60,7 @@ QA Agent implements Playwright tests:
 
 ```bash
 pnpm e2e                          # all tests
-pnpm e2e -- --grep "reconciliation"  # just this area
+pnpm e2e -- --grep "checkout"     # just this area
 pnpm e2e:ui                       # Playwright UI for interactive debugging
 ```
 

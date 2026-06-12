@@ -45,7 +45,7 @@ For any new module, integration, or schema change:
 - [ ] The design does not create circular dependencies between modules
 - [ ] Tenant isolation is designed at the data layer, not only at the application layer
 - [ ] New external dependencies are justified (alternatives considered)
-- [ ] Failure modes for integrations are defined (what happens when PaddleOCR is unavailable?)
+- [ ] Failure modes for integrations are defined (what happens when an external service is unavailable? e.g. an extraction/OCR service)
 - [ ] API contracts are versioned or documented
 - [ ] Database migrations are safe for zero-downtime deployment
 
@@ -54,13 +54,13 @@ For any new module, integration, or schema change:
 For every PR:
 
 - [ ] TypeScript is strict — no `any` without documented justification
-- [ ] Every database query that reads SME data scopes to `tenant_id` AND `client_id`
+- [ ] Every database query that reads tenant-scoped data scopes to `tenant_id` AND `resource_id`
 - [ ] Audit log entries are written for all mutations
 - [ ] Error handling: API errors return correct status codes and structured error bodies
 - [ ] No hardcoded credentials, tokens, or schema version strings in domain code
 - [ ] No `console.log` in production paths
-- [ ] OCR confidence scores are stored with parsed fields
-- [ ] Reconciliation discrepancies are flagged, not auto-resolved
+- [ ] Extraction confidence scores are stored with parsed fields (when an extraction job feeds the data)
+- [ ] Discrepancies between compared data sources are flagged, not auto-resolved
 - [ ] Loading, error, and empty states are implemented in UI components
 - [ ] All interactive elements have stable selectors for Playwright
 
@@ -84,9 +84,9 @@ Apply to every PR that touches auth, data access, or external integrations:
 - [ ] Auth middleware is applied to all protected routes
 - [ ] `tenant_id` is never accepted from user-supplied request parameters
 - [ ] File uploads are validated (type, size, malware scan if applicable)
-- [ ] OCR results are sanitized before storage (no code injection via OCR output)
-- [ ] XML exports are generated from parameterized templates, not string concatenation
-- [ ] Sensitive fields (tax IDs, financial figures) are logged only with explicit redaction
+- [ ] Extracted/third-party content is sanitized before storage (no code injection via extraction output, e.g. OCR)
+- [ ] Generated exports use parameterized templates, not string concatenation (e.g. XML for an externally-governed format)
+- [ ] Sensitive fields (identifiers, financial figures) are logged only with explicit redaction
 - [ ] Session tokens are httpOnly, secure, SameSite
 - [ ] External API calls use secrets from environment, not code
 
@@ -108,7 +108,7 @@ Every review produces a clear decision:
 
 Escalate to a human decision when:
 
-- A change affects the HTKK/eTax XML schema version (regulatory impact)
+- A change affects an externally-governed export schema version, e.g. a regulator-controlled format (external/regulatory impact)
 - A change modifies the tenant isolation mechanism
 - A security finding cannot be resolved without changing the feature design
 - Agents disagree on a significant technical decision

@@ -16,7 +16,7 @@ Defines who reviews what, the depth of review required, and the review process.
 | Database schema change (additive) | Tech Lead Reviewer | No |
 | Database schema change (destructive) | Tech Lead Reviewer | Yes |
 | Tenant isolation mechanism change | Tech Lead Reviewer | Yes |
-| HTKK/eTax schema version update | Tech Lead Reviewer | Yes |
+| Externally-governed export schema version update (regulator-controlled) | Tech Lead Reviewer | Yes |
 | Auth or session handling change | Tech Lead Reviewer | Yes |
 | Billing enforcement change | Tech Lead Reviewer | Yes |
 | Audit log change | Tech Lead Reviewer | Yes |
@@ -48,8 +48,8 @@ For new modules, new integrations, schema changes:
 
 For auth, session, file upload, billing, or tenant isolation changes:
 - Apply full security checklist from `agents/tech-lead-reviewer.md`
-- Check for injection vectors in OCR output handling
-- Check for XML injection in tax filing generation
+- Check for injection vectors in any untrusted/externally-sourced input handling
+- Check for injection (SQL, XML, command) in generated export artifacts
 - Escalate to human for any unresolved finding
 
 ---

@@ -1,6 +1,6 @@
 # Coding Standards
 
-These standards apply to all code in FinPilot. They are enforced by the Tech Lead Reviewer.
+These standards apply to all code in this project. They are enforced by the Tech Lead Reviewer.
 
 ---
 
@@ -9,7 +9,7 @@ These standards apply to all code in FinPilot. They are enforced by the Tech Lea
 - **Strict mode is on.** `tsconfig.json` must have `"strict": true`. No exceptions.
 - No `any` type without a comment explaining why it is unavoidable.
 - No `// @ts-ignore` without a comment explaining the TypeScript version limitation or upstream type bug.
-- Use `unknown` instead of `any` for external data (API responses, OCR output, file uploads) until it is validated with Zod.
+- Use `unknown` instead of `any` for external data (API responses, extraction output, file uploads) until it is validated with Zod.
 - Use `satisfies` for type-narrowing complex config objects.
 - Prefer explicit return types on exported functions.
 
@@ -29,7 +29,7 @@ These standards apply to all code in FinPilot. They are enforced by the Tech Lea
 ### Routing and Auth
 
 - Route protection is enforced in `middleware.ts` — not in individual page components.
-- Never trust `params.tenantId` or `searchParams.clientId` from the URL as authorization. Always resolve the tenant from the authenticated session.
+- Never trust `params.tenantId` or `searchParams.resourceId` from the URL as authorization. Always resolve the tenant from the authenticated session.
 
 ### Data Fetching
 
@@ -42,17 +42,17 @@ These standards apply to all code in FinPilot. They are enforced by the Tech Lea
 
 ### Tenant Isolation (Non-Negotiable)
 
-Every query that reads or writes SME data must include all of:
+Every query that reads or writes tenant-scoped data must include both the `tenant_id` (resolved from the session) AND the `resource_id`:
 
 ```ts
 // WRONG
-db.select().from(invoices).where(eq(invoices.clientId, clientId))
+db.select().from(records).where(eq(records.resourceId, resourceId))
 
 // CORRECT
-db.select().from(invoices).where(
+db.select().from(records).where(
   and(
-    eq(invoices.tenantId, session.tenantId),  // from session, not user input
-    eq(invoices.clientId, clientId)            // validated as belonging to this tenant
+    eq(records.tenantId, session.tenantId),  // from session, not user input
+    eq(records.resourceId, resourceId)        // validated as belonging to this tenant
   )
 )
 ```
@@ -115,14 +115,14 @@ Never return a `500` with a raw stack trace to the client.
 
 | Context | Convention | Example |
 |---|---|---|
-| Files | `kebab-case` | `invoice-upload.tsx` |
-| React components | `PascalCase` | `InvoiceUploadPanel` |
-| Functions / variables | `camelCase` | `parseOcrResult` |
-| Database tables | `snake_case` | `invoices`, `tenant_clients` |
-| Database columns | `snake_case` | `ocr_confidence`, `tenant_id` |
+| Files | `kebab-case` | `record-upload.tsx` |
+| React components | `PascalCase` | `RecordUploadPanel` |
+| Functions / variables | `camelCase` | `parseExtractionResult` |
+| Database tables | `snake_case` | `records`, `tenant_resources` |
+| Database columns | `snake_case` | `extraction_confidence`, `tenant_id` |
 | Environment variables | `UPPER_SNAKE_CASE` | `DATABASE_URL` |
-| `data-testid` | `kebab-case` | `invoice-upload-dropzone` |
-| Zod schemas | `PascalCase` + `Schema` | `InvoiceUploadSchema` |
+| `data-testid` | `kebab-case` | `record-upload-dropzone` |
+| Zod schemas | `PascalCase` + `Schema` | `RecordUploadSchema` |
 
 ---
 
@@ -141,7 +141,7 @@ Do not write comments that describe what the code does (the code does that). Do 
 
 - Use a structured logger (Pino or equivalent). No `console.log` in production code paths.
 - Log levels: `error` for unexpected failures, `warn` for expected-but-notable states, `info` for significant business events, `debug` for local development.
-- Never log: full tax IDs, financial amounts in plaintext (use masked versions), file contents, session tokens.
+- Never log: personally identifiable or regulated identifiers, sensitive amounts in plaintext (use masked versions), file contents, session tokens.
 - Audit events go to the audit log (separate table), not the application log.
 
 ---

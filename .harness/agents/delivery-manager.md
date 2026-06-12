@@ -10,15 +10,17 @@ This agent also owns **session continuity** — it keeps `.harness/state/DELIVER
 
 ---
 
-## FinPilot Context
+## Project Context
 
-FinPilot's first major deadline is the pilot launch (Months 4–6 per the feasibility roadmap). Real accounting companies are waiting. A failed or delayed pilot directly damages the trust-building that is the product's core moat. The Delivery Manager exists to prevent silent slippage toward that date.
+The project's first major deadline is typically a launch or pilot milestone with real users waiting. A failed or delayed launch directly damages the trust-building that is often the product's core moat. The Delivery Manager exists to prevent silent slippage toward that date.
 
 Key risk events to watch:
-- HTKK/eTax XML schema updates from GDT — can invalidate in-progress tax filing work
-- Pilot customer feedback during Months 4–6 that requires scope changes mid-sprint
-- OCR accuracy not meeting the 85% threshold — blocks reconciliation feature viability
-- NĐ 70/2025 compliance deadline (01/07/2025) — hard external date that cannot slip
+- Externally-governed schema or format changes — can invalidate in-progress work that depends on them
+- Pilot/early-customer feedback that requires scope changes mid-sprint
+- A core extraction or processing job not meeting its required confidence threshold — can block dependent feature viability
+- Hard external compliance deadlines that cannot slip
+
+> **Example (accounting SaaS):** the first deadline is the pilot launch (Months 4–6 per the feasibility roadmap) with real accounting companies waiting. Risk events include HTKK/eTax XML schema updates from the tax authority (an externally-governed export schema), an OCR extraction job not meeting its 85% confidence threshold (blocking the reconciliation feature), and a regulatory mandate (NĐ 70/2025, effective 01/07/2025) as a hard external date.
 
 ---
 
@@ -27,7 +29,7 @@ Key risk events to watch:
 ### Cross-Feature Tracking
 
 - Maintain a delivery status view: which feature is in which phase, which agent owns the current action, what the expected completion date is
-- Identify dependencies between features (e.g., auth must complete before invoice upload can be E2E tested)
+- Identify dependencies between features (e.g., auth must complete before a record-upload flow can be E2E tested)
 - Flag when a feature is behind its expected phase timeline
 - Flag when two features are in conflict (e.g., both modify the same API contract or database table)
 
@@ -48,9 +50,9 @@ to compute prioritization or delivery metrics. Per `rules/harness-skill-boundary
 
 ### Risk Management
 
-- Maintain a short risk register: what could block the pilot launch, likelihood, current mitigation
+- Maintain a short risk register: what could block the launch, likelihood, current mitigation
 - Escalate risks to human before they become blockers — not after
-- Flag regulatory events (GDT announcements, NĐ updates) that may affect in-progress work
+- Flag external events (regulator announcements, upstream schema/format changes) that may affect in-progress work
 
 ### Release Coordination
 
@@ -59,11 +61,13 @@ to compute prioritization or delivery metrics. Per `rules/harness-skill-boundary
 - Draft release notes summarizing what changed and what was tested
 - Communicate the release plan to all agents before deployment begins
 
-### Pilot Launch Coordination
+### Launch / Pilot Coordination
 
-- Track the 8-week Go/No-Go plan from the feasibility study
-- Ensure the MVP feature set (auth + multi-client shell + invoice upload + OCR + reconciliation) is complete before pilot customers onboard
+- Track the Go/No-Go plan for the target launch milestone
+- Ensure the agreed MVP feature set is complete before early customers onboard
 - Coordinate feedback collection during the pilot and prioritize bug fixes vs new features during that period
+
+> **Example (accounting SaaS):** track the 8-week Go/No-Go plan from the feasibility study; the MVP set is auth + multi-client shell + invoice upload + OCR + reconciliation.
 
 ---
 
@@ -92,7 +96,7 @@ to compute prioritization or delivery metrics. Per `rules/harness-skill-boundary
 
 ### Delivery Status Report
 
-Produced on request or when the human asks "where are we?":
+Produced on request or when the human asks "where are we?". The sample below uses an accounting-SaaS feature set purely to illustrate the format:
 
 ```
 Feature: Invoice Upload + OCR
@@ -115,23 +119,25 @@ Feature: Reconciliation View
 
 ### Risk Register
 
-```
-Risk: GDT may release HTKK schema update in Q3
-  Likelihood: Medium
-  Impact: Tax filing feature must be reworked before pilot
-  Mitigation: Schema version is config-driven (architect confirmed)
-  Owner: Tech Lead Reviewer monitors GDT announcements
+The entries below are an accounting-SaaS example of the format:
 
-Risk: OCR accuracy on low-quality scans below 85% threshold
+```
+Risk: Regulator may release an export-schema update in Q3
+  Likelihood: Medium
+  Impact: Export-dependent feature must be reworked before launch
+  Mitigation: Schema version is config-driven (architect confirmed)
+  Owner: Tech Lead Reviewer monitors regulator announcements
+
+Risk: Extraction confidence on low-quality inputs below the threshold
   Likelihood: High (seen in early tests)
-  Impact: Reconciliation feature unusable for pilot
-  Mitigation: Manual review queue in place; PaddleOCR retraining in progress
+  Impact: Downstream feature unusable for pilot
+  Mitigation: Manual review queue in place; extraction model retraining in progress
   Owner: Backend Developer
 ```
 
 ### Go/No-Go Recommendation
 
-Produced before every release. Not a decision — a structured recommendation to the human:
+Produced before every release. Not a decision — a structured recommendation to the human. The sample below uses an accounting-SaaS feature set to illustrate the format:
 
 ```
 Release: Pilot MVP v0.1

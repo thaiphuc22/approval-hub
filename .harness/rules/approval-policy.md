@@ -13,11 +13,11 @@ These situations must be paused until a human confirms the direction:
 | New feature: requirements approved | Prevents building the wrong thing |
 | New external service integration | Cost, legal, and operational implications |
 | Changes to the tenant isolation mechanism | Data breach risk; irreversible if wrong |
-| Changes to the HTKK/eTax XML schema version | Regulatory compliance; all clients affected |
+| Changes to an externally-governed export schema version (regulator-controlled) | Compliance; all tenants affected |
 | Changes to the billing enforcement logic | Revenue impact; customer trust |
 | Changes to the audit log schema or retention | Legal/compliance implications |
 | Destructive database migration (DROP, TRUNCATE) | Irreversible data loss risk |
-| Addition of a new NĐ or GDT rule to the engine | Regulatory interpretation; requires legal review |
+| Addition of a new externally-governed rule to the rule engine | Interpretation risk; requires domain/legal review |
 
 ---
 
@@ -29,7 +29,9 @@ These situations require human sign-off in addition to Tech Lead Reviewer approv
 |---|---|
 | Any security finding from code review that required a design change | Verify the mitigation is understood |
 | Tenant isolation breach — bug fix | Verify root cause is addressed, not just symptom |
-| Any change that affects the reconciliation auto-flag vs auto-resolve logic | Trust is the product's core value |
+| Any change to logic where the product must never silently auto-resolve conflicting data | Trust is the product's core value |
+
+> **Example (accounting SaaS):** the harness's worked example is a reconciliation engine that compares data from multiple sources of differing trust. Changing its auto-flag vs auto-resolve behaviour — or the trust hierarchy between sources — is exactly this kind of change: it must flag conflicts for human review, never resolve them silently.
 
 ---
 
@@ -44,8 +46,8 @@ See `workflows/release-readiness.md` for the full pre-release checklist. Human s
 - Delete or archive tenant data
 - Change a subscription tier for a tenant
 - Disable or skip E2E tests permanently in CI
-- Add a new external API that receives raw financial data
-- Modify the trust hierarchy between reconciliation data sources
+- Add a new external API that receives raw sensitive data
+- Modify the trust hierarchy between data sources where conflicts must never be silently auto-resolved
 - Change logging or audit retention settings
 
 ---

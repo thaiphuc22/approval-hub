@@ -35,7 +35,7 @@ Blockers that stop Phase 1:
 2. Architect produces architecture note, API contracts, and schema changes using `templates/implementation-plan.md`.
 3. Architect communicates E2E coverage requirements to QA Agent.
 4. Tech Lead Reviewer reviews architecture note.
-5. **Human approval required** for: new external integrations, schema changes to core tables (invoices, reconciliation, audit), or changes to the tenant isolation mechanism.
+5. **Human approval required** for: new external integrations, schema changes to core tables (the central business entities and the audit log), or changes to the tenant isolation mechanism.
 
 ---
 

@@ -12,7 +12,7 @@ Give the **Product Analyst** a rough description:
 
 - What problem it solves
 - Which user is affected
-- Any regulatory constraint (e.g., "this is triggered by NĐ 70/2025")
+- Any regulatory constraint (e.g., "this is triggered by a new compliance mandate")
 
 You do not need to write user stories or acceptance criteria yourself — that is the Product Analyst's job.
 
@@ -40,7 +40,7 @@ The Solution Architect produces the technical design. **You only need to approve
 - A new external service (e.g., adding a bank API integration)
 - Changes to the tenant isolation mechanism
 - Destructive database schema changes
-- A change to the HTKK/eTax XML schema version
+- A change to an externally-governed export schema version (e.g. a regulator-controlled format)
 
 For a standard feature (new UI screen, new API endpoint, new domain logic within existing modules) — no human approval is needed at this step.
 
@@ -64,7 +64,7 @@ The Tech Lead Reviewer handles code review. **You only approve before merge if**
 
 - A security finding that required a design change
 - A tenant isolation bug fix
-- A change to reconciliation logic (flag vs auto-resolve)
+- A change to logic where the product must never silently auto-resolve conflicting data (flag vs auto-resolve)
 
 For clean PRs with no escalations — Tech Lead Reviewer approval is sufficient.
 

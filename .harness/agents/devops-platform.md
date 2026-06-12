@@ -69,13 +69,13 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: finpilot_dev
+      POSTGRES_DB: app_dev
     ports: ["5432:5432"]
 
   db_test:
     image: postgres:16
     environment:
-      POSTGRES_DB: finpilot_test
+      POSTGRES_DB: app_test
     ports: ["5433:5432"]
 
   app:
@@ -100,7 +100,7 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB: finpilot_test
+          POSTGRES_DB: app_test
         ports: ["5433:5432"]
 
     steps:
@@ -122,7 +122,7 @@ jobs:
       - name: Run E2E tests
         run: pnpm e2e
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/finpilot_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/app_test
           NEXTAUTH_SECRET: ci-secret-not-for-production
           E2E_BASE_URL: http://localhost:3000
 
@@ -173,7 +173,7 @@ export default defineConfig({
 - Local development: Chromium (fast feedback)
 - CI: Chromium + Firefox
 - Safari/WebKit: run weekly or before major releases
-- Mobile viewport testing: include for the client dashboard (accountants may use tablets)
+- Mobile viewport testing: include for any view where users work on tablets or small screens
 
 ---
 

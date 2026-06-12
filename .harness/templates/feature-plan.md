@@ -39,7 +39,8 @@ Copy this template for each new feature. Fill every section before implementatio
 
 ## Regulatory / Compliance Constraints
 
-<!-- Any NĐ 70/2025, NĐ 13/2023, GDT, or audit requirements that affect implementation. -->
+<!-- Any regulatory, data-protection, or audit requirements that affect implementation.
+     Example (accounting SaaS): NĐ 70/2025, NĐ 13/2023, GDT filing rules. -->
 
 ## E2E Scenario Candidates
 

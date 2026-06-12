@@ -80,7 +80,7 @@ ALTER TABLE invoices DROP COLUMN review_required;
 
 | Service | Call type | Failure mode | Handled by |
 |---|---|---|---|
-| PaddleOCR | Async job | Unavailable → job queued, retry | Job worker |
+| <extraction/ingestion service> | Async job | Unavailable → job queued, retry | Job worker |
 
 ## Testing Strategy
 

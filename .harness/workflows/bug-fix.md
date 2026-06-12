@@ -11,7 +11,7 @@ Use this workflow for diagnosing and fixing defects in production or pre-product
 1. Reproduce the bug with a minimal reproduction case.
 2. Classify severity:
    - **Critical**: data loss, tenant isolation breach, regulatory compliance failure, production down
-   - **High**: core user workflow broken (reconciliation, OCR, XML export)
+   - **High**: a core user workflow broken (such as data ingestion, processing, or export)
    - **Medium**: secondary feature broken, workaround exists
    - **Low**: visual/UX issue, edge case
 3. For **Critical** severity: immediately notify human stakeholders. Do not wait for the workflow.
