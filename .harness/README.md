@@ -27,6 +27,11 @@ ships software. It is **project-agnostic** — adapt the domain-specific parts
 
 ## How to Start
 
+> **First time here?** Read [`GUIDE.md`](GUIDE.md) (Tiếng Việt: [`GUIDE.vi.md`](GUIDE.vi.md))
+> — a narrative walkthrough of the whole system (two layers, state files, phases, the
+> roadmap→state seam) with worked examples. The files below are precise references; the
+> guide is the map that ties them together.
+
 **Read these before anything else:**
 
 1. This README
@@ -35,6 +40,14 @@ ships software. It is **project-agnostic** — adapt the domain-specific parts
 4. [`state/decisions.md`](state/decisions.md) — locked decisions that must not be revisited
 
 If `active-task.md` describes work in progress, **resume that task first**.
+
+> A `SessionStart` hook injects a digest of this state automatically each session, and a
+> `PreToolUse` guard warns on source edits while foundations are unfinished. See
+> [`.claude/hooks/`](../.claude/hooks/) and the root `CLAUDE.md`.
+
+**Lite vs full.** This README describes the **full** harness. Small/solo projects can use
+the **lite profile** instead — one state file plus a 3-phase Plan→Build→Verify loop. See
+[`lite/README.md`](lite/README.md).
 
 ---
 
