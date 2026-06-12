@@ -59,7 +59,7 @@ function countFoundations(md) {
 }
 
 function isPlaceholder(md) {
-  return /<YYYY-MM-DD>|NOT STARTED — fill in foundations|None yet —/.test(md);
+  return /<YYYY-MM-DD>|NOT STARTED — fill in foundations below|None yet — set up foundations/.test(md);
 }
 
 try {
