@@ -4,10 +4,16 @@ A reusable **Claude Code setup** to drop into any new project: a delivery harnes
 a library of PM/BA skills, slash commands, and MCP config. Extracted so the same
 working method can be reused across projects instead of rebuilt each time.
 
-> 🧭 **New here? Read [`.harness/GUIDE.md`](.harness/GUIDE.md) first**
-> (Tiếng Việt: [`.harness/GUIDE.vi.md`](.harness/GUIDE.vi.md)). It walks through the whole
-> mental model — the two layers (PM/PO → foundations → delivery), the state files, the 7
-> phases, and how a roadmap backlog flows into delivery state — with worked examples.
+> 🚀 **Fastest start — don't read, do:** start Claude Code in the project and run
+> [`/harness-start`](.claude/commands/harness-start.md). It sets up the harness *with* you in
+> one guided pass (profile, foundations, state files, the few skills you actually need).
+>
+> 🧭 **Want the "why" first?** Read [`.harness/GUIDE.md`](.harness/GUIDE.md)
+> (Tiếng Việt: [`.harness/GUIDE.vi.md`](.harness/GUIDE.vi.md)) — the whole mental model: the two
+> layers (PM/PO → foundations → delivery), the state files, the 7 phases, with worked examples.
+>
+> 🗺️ **Overwhelmed by 58 skills?** [`.claude/skills/README.md`](.claude/skills/README.md) groups
+> them into 6 buckets — pick the one bucket matching your task.
 
 ## What's inside
 
@@ -21,7 +27,8 @@ working method can be reused across projects instead of rebuilt each time.
 | `.claude/hooks/` | **Enforcement hooks**: SessionStart injects the state digest; a PreToolUse guard enforces foundations-before-features. |
 | `.claude/settings.json` | Committed settings that register the hooks above. |
 | `.claude/skills/` | PM/BA skill library (see licensing note below). |
-| `.claude/commands/` | Slash commands (`/discover`, `/strategy`, `/prioritize`, etc.). |
+| `.claude/skills/README.md` | **Skills map** — 58 skills grouped into 6 buckets with "use when". |
+| `.claude/commands/` | Slash commands. **`/harness-start`** sets up a new project interactively; also `/discover`, `/strategy`, `/prioritize`, etc. |
 | `.mcp.json` | MCP servers (Stitch). Reads `STITCH_API_KEY` from env — no secret committed. |
 | `.claude/settings.local.json.example` | Template for local env/secrets. **Copy, don't commit the real one.** |
 
@@ -35,13 +42,14 @@ git clone <this-repo-url> my-project && cd my-project
 cp .claude/settings.local.json.example .claude/settings.local.json
 #   then edit it and put your real STITCH_API_KEY
 
-# 3. Adapt the harness to your domain
-#    - Fill Project Overview + Tech Stack in CLAUDE.md
-#    - Define foundations in .harness/state/DELIVERY_STATE.md
-#    - Edit .harness/rules and .harness/workflows to match your stack/domain
-
-# 4. Start Claude Code — it reads CLAUDE.md and the harness state automatically
+# 3. Start Claude Code and run:  /harness-start
+#    It walks you through profile → foundations → state files → relevant skills.
 ```
+
+Prefer to do it by hand? Skip step 3 and instead: fill Project Overview + Tech Stack in
+`CLAUDE.md`, define foundations in `.harness/state/DELIVERY_STATE.md` (or `STATE.md` for lite),
+and edit `.harness/rules` / `.harness/workflows` to match your stack. Then start Claude Code — it
+reads `CLAUDE.md` and the harness state automatically.
 
 ### Pick a profile
 

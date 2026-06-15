@@ -240,3 +240,13 @@ test("wiring: the AI-collaboration-hygiene rule exists and is registered in the 
   assert.match(repoRead(".harness/rules/ai-collaboration-hygiene.md"), /# AI Collaboration Hygiene/);
   assert.match(repoRead(".harness/README.md"), /ai-collaboration-hygiene\.md/);
 });
+
+test("wiring: the skills map exists and the root README links it", () => {
+  assert.match(repoRead(".claude/skills/README.md"), /# Skills Map/);
+  assert.match(repoRead("README.md"), /skills\/README\.md/);
+});
+
+test("wiring: /harness-start onboarding command exists and the root README points to it", () => {
+  assert.match(repoRead(".claude/commands/harness-start.md"), /name: harness-start/);
+  assert.match(repoRead("README.md"), /\/harness-start/);
+});
