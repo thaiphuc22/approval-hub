@@ -250,3 +250,8 @@ test("wiring: /harness-start onboarding command exists and the root README point
   assert.match(repoRead(".claude/commands/harness-start.md"), /name: harness-start/);
   assert.match(repoRead("README.md"), /\/harness-start/);
 });
+
+test("wiring: prompt-quality-check skill exists and is listed in the skills map", () => {
+  assert.match(repoRead(".claude/skills/prompt-quality-check/SKILL.md"), /name: prompt-quality-check/);
+  assert.match(repoRead(".claude/skills/README.md"), /prompt-quality-check/);
+});

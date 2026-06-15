@@ -19,6 +19,7 @@ right skills for you, so you rarely call a skill by name.
 | "I need a PRD / user stories to build from" | `/write-prd` → **Specs & Stories** |
 | "I'm a BA writing/reviewing requirements docs" | **Business Analysis (BABOK)** |
 | "I need to measure the business" | **Metrics & Business Health** |
+| "How well am I prompting the agent?" | `prompt-quality-check` → **First-party harness skills** |
 
 ---
 
@@ -81,6 +82,17 @@ right skills for you, so you rarely call a skill by name.
 `pm-skill-creator` · `skill-authoring-workflow` · `workshop-facilitation`
 
 **Use when:** PM-to-leadership transitions, interview prep, EOL announcements, or authoring new skills.
+
+---
+
+## First-party harness skills
+
+Distinct from the third-party PM/BA library above — these ship with the kit and carry no external
+license. They are about **working with the agent itself**, not product management.
+
+- [`prompt-quality-check`](prompt-quality-check/SKILL.md) — measure your prompt quality across a
+  conversation against the 4 dimensions + thresholds from AI-Engineering-Coach. Pairs with
+  [`.harness/rules/ai-collaboration-hygiene.md`](../../.harness/rules/ai-collaboration-hygiene.md).
 
 ---
 
