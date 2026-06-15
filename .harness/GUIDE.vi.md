@@ -28,7 +28,8 @@ Kit chạy theo **hai tầng**, với một giai đoạn nền móng ở giữa:
                                  │ nuôi
                                  ▼
         FOUNDATIONS — nền móng chung mà mọi tính năng phụ thuộc
-        (scaffold → schema → phân quyền → engine nghiệp vụ lõi → auth/vỏ app)
+        (F0 sẵn-sàng workspace/agent → scaffold → schema → phân quyền
+         → engine nghiệp vụ lõi → auth/vỏ app)
                                  │ khi COMPLETE, mở khóa
                                  ▼
 ┌─ TẦNG 2: DELIVERY — "XÂY NHƯ THẾ NÀO?"  (vòng 7 phase, mỗi tính năng) ─────┐

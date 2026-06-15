@@ -27,7 +27,8 @@ The kit runs in **two layers**, with a foundations stage between them:
                                  │ feeds
                                  ▼
         FOUNDATIONS — the shared base every feature depends on
-        (scaffold → schema → access model → core domain engine → auth/shell)
+        (F0 workspace/agent readiness → scaffold → schema → access model
+         → core domain engine → auth/shell)
                                  │ once COMPLETE, unlocks
                                  ▼
 ┌─ LAYER 2: DELIVERY — "HOW do we build it?"  (the 7-phase loop, per feature)┐

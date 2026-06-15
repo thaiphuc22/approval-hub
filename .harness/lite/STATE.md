@@ -19,9 +19,10 @@ NOT STARTED — define foundations below, then start F0.
 > Foundations before features still applies in lite mode. Keep this list tiny — only
 > what every feature truly depends on. Delete rows you don't need.
 
-- [ ] F0: Project scaffold (runs, builds, one smoke test passes) — `NOT STARTED`
-- [ ] F1: Core data model / schema — `NOT STARTED`
-- [ ] F2: Auth + app shell (if the app has users) — `NOT STARTED`
+- [ ] F0: Workspace & agent readiness (SessionStart readiness line green, repo on local path, CLAUDE.md lean) — `NOT STARTED`
+- [ ] F1: Project scaffold (runs, builds, one smoke test passes) — `NOT STARTED`
+- [ ] F2: Core data model / schema — `NOT STARTED`
+- [ ] F3: Auth + app shell (if the app has users) — `NOT STARTED`
 
 ## Active task
 

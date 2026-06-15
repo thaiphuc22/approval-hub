@@ -10,10 +10,12 @@ feature work starts until all required foundations are complete and human-approv
 **Delivery Manager** tracks each foundation as a separate workstream. **Human approval is
 required** before each foundation's implementation begins.
 
-> **Adapt this to your project.** The five foundations below are a proven *shape* (scaffold
-> → data model → access model → core domain engine → auth + shell). Rename and re-scope
-> them to your domain. The `> Example:` callouts show how one project (a multi-tenant SaaS)
-> filled them in — replace those specifics with yours.
+> **Adapt this to your project.** Foundation 0 is workspace **pre-flight** — mechanical,
+> machine-verifiable, no human approval; it is the same for every project. Foundations 1–5
+> are the product substrate: a proven *shape* (scaffold → data model → access model → core
+> domain engine → auth + shell). Rename and re-scope **1–5** to your domain. The `> Example:`
+> callouts show how one project (a multi-tenant SaaS) filled them in — replace those specifics
+> with yours.
 
 ---
 
@@ -29,10 +31,56 @@ feature is either impossible or built on sand. Identify them first.
 
 ---
 
-## Foundation 0 — Project Scaffold
+## Foundation 0 — Workspace & Agent Readiness
+
+**Owner**: DevOps/Platform Agent (or whoever sets up the repo)
+**Blocks**: Everything — this is the pre-flight before an agent can reliably work in the repo
+**Human approval**: Not required — the done-when checklist is mechanical and the SessionStart
+hook self-verifies most of it
+
+### Why This Is a Foundation, Not Just Setup
+
+Before an agent builds anything, the repo must be set up *for an agent to work in safely*. This
+is workspace hygiene, not product substrate — but get it wrong and every later foundation is
+built by an agent that is flying blind (no instructions), corrupting its own state (repo on a
+cloud-sync folder), or drowning in a bloated instruction file. It is the one foundation the
+harness can attest by itself.
+
+This foundation operationalizes [`rules/ai-collaboration-hygiene.md`](../rules/ai-collaboration-hygiene.md)
+— the collaboration standard — and is reported each session by
+[`.claude/hooks/session-start.js`](../../.claude/hooks/session-start.js).
+
+### What to Wire
+
+- A primary instruction file (`CLAUDE.md` or `AGENTS.md`), kept **lean** (< ~600 lines). Durable
+  rules belong in `.harness/rules/`, not one giant file.
+- Harness state **initialized** (`DELIVERY_STATE.md` / `STATE.md` filled in, not the template).
+- Hooks **active** (`.claude/settings.json`: SessionStart digest + foundations guard).
+- Any skills the project needs available under `.claude/skills/`.
+- The repo on a **local path** — never under OneDrive / Dropbox / iCloud (sync corrupts agent
+  state files via conflict copies).
+- Custom instructions for the AI assistant in use (`.github/copilot-instructions.md` or
+  equivalent), if applicable.
+
+### Done When
+
+The SessionStart hook's `Agentic readiness:` line reports ✓ for these, and no ⚠ warnings remain:
+
+- [ ] Primary instruction file present and under the size limit (no bloat warning)
+- [ ] Harness state initialized — not the unfilled template
+- [ ] Hooks active (`.claude/settings.json` present)
+- [ ] Skills directory present and non-empty (if the project uses skills)
+- [ ] Repo is on a local path, not a cloud-sync folder (no cloud warning)
+
+> Unlike F1–F5, this foundation needs **no human approval** — the hook attests it. Tick it once
+> the readiness line is green.
+
+---
+
+## Foundation 1 — Project Scaffold
 
 **Owner**: DevOps/Platform Agent
-**Blocks**: Everything
+**Blocks**: Everything below it
 **Human approval**: Required on monorepo and tooling decisions before setup begins
 
 ### What It Is
@@ -76,7 +124,7 @@ Define the repository layout once. A typical monorepo shape:
 
 ---
 
-## Foundation 1 — Core Data Schema
+## Foundation 2 — Core Data Schema
 
 **Owner**: Solution Architect + Backend Developer
 **Blocks**: All feature modules
@@ -116,7 +164,7 @@ metadata (a single aggregate vs. per-field), and redaction of sensitive values i
 
 ---
 
-## Foundation 2 — Access Model (RBAC)
+## Foundation 3 — Access Model (RBAC)
 
 **Owner**: Solution Architect
 **Blocks**: Auth module, every API route, every UI component
@@ -158,7 +206,7 @@ The architect must specify, for each rule in the matrix:
 
 ---
 
-## Foundation 3 — Core Domain Engine
+## Foundation 4 — Core Domain Engine
 
 **Owner**: Backend Developer
 **Blocks**: Dashboard, alerts, status indicators — anything driven by domain logic
@@ -193,11 +241,11 @@ they transition (daily job vs. computed-on-query — architect decides).
 
 ---
 
-## Foundation 4 — Auth + App Shell
+## Foundation 5 — Auth + App Shell
 
 **Owner**: Backend Developer + Frontend Developer (parallel)
 **Blocks**: All UI feature work
-**Depends on**: Foundations 1 and 2 complete
+**Depends on**: Foundations 2 and 3 complete
 **Human approval**: Not required (standard pattern), but Tech Lead Reviewer must approve before feature work begins
 
 ### What It Is
@@ -246,10 +294,11 @@ Sequence features so each builds on a stable predecessor. Guiding principles:
 
 No feature from `workflows/feature-delivery.md` begins until every foundation is complete:
 
-- [ ] F0: Project scaffold — dev command works, CI is green
-- [ ] F1: Core data schema — human-approved, migrations tested, seed data ready
-- [ ] F2: Access model — human-approved, enforcement strategy documented
-- [ ] F3: Core domain engine — unit tested, seed data covers all states
-- [ ] F4: Auth + shell — E2E login/logout/route-protection tests pass
+- [ ] F0: Workspace & agent readiness — SessionStart readiness line green, no ⚠ warnings (no human approval needed)
+- [ ] F1: Project scaffold — dev command works, CI is green
+- [ ] F2: Core data schema — human-approved, migrations tested, seed data ready
+- [ ] F3: Access model — human-approved, enforcement strategy documented
+- [ ] F4: Core domain engine — unit tested, seed data covers all states
+- [ ] F5: Auth + shell — E2E login/logout/route-protection tests pass
 
 **Delivery Manager maintains this checklist in `.harness/state/DELIVERY_STATE.md` and reports status to the human on request.**

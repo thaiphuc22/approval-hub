@@ -69,9 +69,16 @@ function isInfraPath(rel) {
   return false;
 }
 
+/** Restrict to the "## Foundations" section so feature/workstream checkboxes aren't counted. */
+function foundationScope(md) {
+  const m = md.match(/##+\s*Foundations[^\n]*\n([\s\S]*?)(\n##\s|$)/i);
+  return m ? m[1] : md;
+}
+
 function countFoundations(md) {
-  const done = (md.match(/- \[x\]/gi) || []).length;
-  const open = (md.match(/- \[ \]/g) || []).length;
+  const scope = foundationScope(md);
+  const done = (scope.match(/- \[x\]/gi) || []).length;
+  const open = (scope.match(/- \[ \]/g) || []).length;
   return { done, total: done + open };
 }
 

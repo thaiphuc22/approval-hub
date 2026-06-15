@@ -52,14 +52,77 @@ function sectionBody(md, heading) {
     .trim();
 }
 
+/** Restrict to the "## Foundations" section so feature/workstream checkboxes aren't counted. */
+function foundationScope(md) {
+  const m = md.match(/##+\s*Foundations[^\n]*\n([\s\S]*?)(\n##\s|$)/i);
+  return m ? m[1] : md;
+}
+
 function countFoundations(md) {
-  const done = (md.match(/- \[x\]/gi) || []).length;
-  const open = (md.match(/- \[ \]/g) || []).length;
+  const scope = foundationScope(md);
+  const done = (scope.match(/- \[x\]/gi) || []).length;
+  const open = (scope.match(/- \[ \]/g) || []).length;
   return { done, total: done + open };
 }
 
 function isPlaceholder(md) {
   return /<YYYY-MM-DD>|NOT STARTED — fill in foundations below|None yet — set up foundations/.test(md);
+}
+
+function exists(p) {
+  try {
+    return fs.existsSync(p);
+  } catch {
+    return false;
+  }
+}
+
+/** Non-empty directory check (a skills/ dir that exists but is empty doesn't count). */
+function hasFiles(dir) {
+  try {
+    return fs.statSync(dir).isDirectory() && fs.readdirSync(dir).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Agentic-readiness + config-health digest. Inspired by AI-Engineering-Coach's
+ * config-health-helpers.ts (MIT, microsoft/AI-Engineering-Coach): checks that the
+ * project is actually set up to be driven by an agent, and flags two footguns —
+ * a repo living under cloud storage (corrupts agent state files) and an oversized
+ * primary instruction file (dilutes context). Returns [] on a clean/unknown project.
+ */
+// Repo under a sync folder → agents writing state hit corruption/conflict files.
+const CLOUD_PATH_PATTERNS = [/onedrive/i, /google\s*drive/i, /dropbox/i, /icloud/i, /cloudstorage/i];
+const OVERSIZED_INSTRUCTION_LINES = 600;
+
+function readinessLines(root) {
+  const out = [];
+
+  // Cloud-storage footgun — highest-value signal, surface first.
+  if (CLOUD_PATH_PATTERNS.some((re) => re.test(root))) {
+    out.push("⚠️ Project is under a cloud-sync folder (OneDrive/Dropbox/…). Agent state files can corrupt or conflict — move the repo to a local path.");
+  }
+
+  // Oversized primary instruction file dilutes every prompt's context.
+  const guide = read(path.join(root, "CLAUDE.md")) || read(path.join(root, "AGENTS.md"));
+  if (guide) {
+    const n = guide.split("\n").length;
+    if (n > OVERSIZED_INSTRUCTION_LINES) {
+      out.push(`⚠️ Primary instruction file is ${n} lines (> ${OVERSIZED_INSTRUCTION_LINES}). Trim it — long instructions crowd out task context.`);
+    }
+  }
+
+  // Agentic-readiness markers (✓/✗) — what the project has wired up for agents.
+  const markers = [
+    ["CLAUDE.md", exists(path.join(root, "CLAUDE.md")) || exists(path.join(root, "AGENTS.md"))],
+    ["instructions", exists(path.join(root, ".github", "copilot-instructions.md")) || hasFiles(path.join(root, ".github", "instructions"))],
+    ["skills", hasFiles(path.join(root, ".claude", "skills")) || hasFiles(path.join(root, ".github", "skills"))],
+    ["hooks", exists(path.join(root, ".claude", "settings.json"))],
+  ];
+  out.push("Agentic readiness: " + markers.map(([k, ok]) => `${ok ? "✓" : "✗"} ${k}`).join(" · "));
+  return out;
 }
 
 try {
@@ -85,6 +148,7 @@ try {
     } else {
       lines.push("Read .harness/state/STATE.md in full before acting. Foundations before features.");
     }
+    lines.push(...readinessLines(root));
     return emit(lines.join("\n"));
   }
 
@@ -119,6 +183,7 @@ try {
   } else {
     lines.push("Resume the active task first. No feature work until all foundations are COMPLETE.");
   }
+  lines.push(...readinessLines(root));
   return emit(lines.join("\n"));
 } catch {
   process.exit(0);

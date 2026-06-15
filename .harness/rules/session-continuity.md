@@ -61,7 +61,8 @@ _This section is updated by the Delivery Manager at the end of every session._
 ---
 
 ## Foundations
-- [ ] F0: Project Scaffold — [status: NOT_STARTED | IN_PROGRESS | COMPLETE | BLOCKED]
+- [ ] F0: Workspace & Agent Readiness — [status: NOT_STARTED | IN_PROGRESS | COMPLETE | BLOCKED]
+- [ ] F1: Project Scaffold — [status: NOT_STARTED | IN_PROGRESS | COMPLETE | BLOCKED]
 ...
 
 ## Active Feature Workstreams
@@ -106,7 +107,7 @@ Agent role: [e.g., Backend Developer]
 [One sentence: what is being built]
 
 ## Current phase
-[e.g., Foundation 1 — Core Data Schema, implementation step 3 of 5]
+[e.g., Foundation 2 — Core Data Schema, implementation step 3 of 5]
 
 ## What was done this session
 - [specific action taken]

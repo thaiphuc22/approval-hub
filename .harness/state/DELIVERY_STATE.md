@@ -18,11 +18,12 @@ If you are ever unsure what to do, read this section._
 
 <!-- Define your foundations (build order before any feature). Example shape: -->
 
-- [ ] F0: Project Scaffold — `NOT STARTED`
-- [ ] F1: <Master Data / Schema> — `NOT STARTED`
-- [ ] F2: <RBAC / Access Model> — `NOT STARTED`
-- [ ] F3: <Core Domain Engine> — `NOT STARTED`
-- [ ] F4: <Auth + App Shell> — `NOT STARTED`
+- [ ] F0: Workspace & Agent Readiness — `NOT STARTED` (pre-flight; SessionStart hook self-verifies, no human approval)
+- [ ] F1: Project Scaffold — `NOT STARTED`
+- [ ] F2: <Master Data / Schema> — `NOT STARTED`
+- [ ] F3: <RBAC / Access Model> — `NOT STARTED`
+- [ ] F4: <Core Domain Engine> — `NOT STARTED`
+- [ ] F5: <Auth + App Shell> — `NOT STARTED`
 
 ---
 
