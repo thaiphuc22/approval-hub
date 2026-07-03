@@ -72,18 +72,31 @@ Two committed hooks in [`.claude/settings.json`](.claude/settings.json) give the
 
 ## Project Overview
 
-<!-- TODO: Replace with your project. Example:
-**<Product>** is a <type> for <audience>. The core value proposition is <X>.
-Key regulatory / business context: <...>.
--->
+**approval-hub** là workspace + codebase cho hệ thống **Quản trị Khoa học Công nghệ (QTKHCN)**
+của Tổng Công ty Công nghiệp Công nghệ cao Viettel (VHT) — một hệ thống chuyển đổi số toàn trình,
+số hoá luồng phê duyệt/nghiệp vụ nhiều cấp (chủ trương → xét duyệt → thực hiện → điều chỉnh →
+nghiệm thu → quyết toán) cho Nhiệm vụ KHCN (RD01–RD10), tích hợp SSO/IAM và các hệ thống nội bộ
+(QLNS, Mua sắm, SAP, QLTS, PLM).
+
+Giai đoạn hiện tại: **BA rồi build**. Ưu tiên trước mắt là chuẩn hoá yêu cầu từ tài liệu quy trình
+(xem `docs/req/`), sau đó chuyển sang xây dựng phần mềm. Trọng tâm 2026: 10 phân hệ ưu tiên (Cổng
+tập trung, Phân quyền, Danh mục dùng chung, Quản lý quy trình Camunda 8, Quản lý NV KHCN 7/11 quy
+trình, Chi phí nhân công, Hàng hoá đề tài, Mua sắm nâng cấp, Tích hợp, AI-Agent).
+
+> Bối cảnh chi tiết: `docs/req/BC_PRESALE_VTCN_VHT_CDS.md` (báo cáo presale) và
+> `docs/req/1. Quy trinh Phan mem KHCN chi tiet (clean).md` (quy trình nghiệp vụ đã làm sạch).
 
 ## Tech Stack
 
-<!-- TODO: Replace with your stack. Example:
-- **Framework**: Next.js (App Router) with TypeScript
-- **Database**: PostgreSQL
-- **Testing**: Playwright (E2E), Jest/Vitest (unit)
--->
+- **Quy trình động / workflow**: Camunda 8 (license đang thương thảo — xem Blockers trong STATE)
+- **Xác thực / phân quyền**: SSO/IAM tập trung
+- **Tích hợp**: API/đồng bộ dữ liệu với QLNS, Mua sắm (MS), SAP, QLTS, PLM, CRM, Storage
+- **AI**: phân hệ tích hợp AI-Agent
+- **Backend / Frontend / DB**: _chưa chốt — sẽ quyết ở F2 (Architecture & Locked Decisions)_
+- **Giai đoạn BA**: tài liệu Markdown + bộ skill BA (`.claude/skills/ba-*`, `skill-*`)
+
+> ⚠️ Phần lớn stack build (ngôn ngữ, framework, DB) **chưa được chốt** — đó là nội dung của
+> foundation **F2**. Không giả định stack trước khi F2 được phê duyệt.
 
 ## Development Commands
 
