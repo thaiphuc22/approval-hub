@@ -2,16 +2,19 @@
  * P0.5 #4 — Khối "Đồng ý / Từ chối" + rework.
  *
  * Mọi luồng RD01–RD06 đều có cổng phê duyệt: "Phê duyệt/Từ chối", "Đạt/Chưa đạt"
- * ở mỗi cấp, kèm vòng lặp rework. Module này cho phép dựng nhanh:
- *  (a) Palette: mục "Cổng Đồng ý/Từ chối" — chèn ExclusiveGateway đặt sẵn tên.
- *  (b) Behavior: tự gán nhãn 2 sequence flow đi ra của cổng đó — flow thứ 1 =
- *      "Đồng ý" (đặt luôn làm default), flow thứ 2 = "Từ chối". Không đè nhãn có sẵn.
+ * ở mỗi cấp, kèm vòng lặp rework. Mẫu chèn nhanh nằm ở drawer "Mẫu nghiệp vụ KHCN"
+ * (data/elementTemplates.ts id `decision-gateway`). Module này giữ BEHAVIOR:
+ *  tự gán nhãn 2 sequence flow đi ra của cổng đó — flow thứ 1 = "Đồng ý",
+ *  flow thứ 2 = "Từ chối" (đặt làm DEFAULT). Không đè nhãn có sẵn.
+ *
+ * AN TOÀN LUỒNG: nhánh default là "Từ chối" — nếu biến kết quả thiếu hoặc không
+ * khớp điều kiện nào, token đi hướng từ chối/rework chứ KHÔNG vô tình phê duyệt.
+ * Nhánh "Đồng ý" bắt buộc có điều kiện FEEL (chọn preset từ variableContract ở
+ * nhóm "Điều kiện (KHCN)"); lint sẽ báo LỖI nếu nhánh không-default thiếu điều kiện.
  *
  * ⚠️ ASSUMPTION A1 (OQ-002 — đích rework khi từ chối, CHƯA chốt với khách):
- *   - "Đồng ý" là nhánh mặc định (default flow) → đi tiếp.
  *   - "Từ chối" là nhánh rework; ĐÍCH rework do người vẽ tự nối (mặc định khuyến
- *     nghị: về bước "Xây dựng hồ sơ" của PM). Điều kiện rẽ nhánh để TRỐNG cho panel
- *     điền (phụ thuộc cách phát tín hiệu duyệt/từ chối — liên quan OQ-006).
+ *     nghị: về bước "Xây dựng hồ sơ" của PM).
  * Khi khách chốt OQ-002 → chỉ cần chỉnh nhãn/đích ở đây.
  *
  * Cùng khuôn plain didi module (provider + behavior). Gói bpmn.io không .d.ts → any.
@@ -30,42 +33,7 @@ function isApprovalGateway(el: any): boolean {
   return name === DECISION_NAME || /đồng ý.*từ chối/i.test(name)
 }
 
-// ── (a) Palette: chèn cổng Đồng ý/Từ chối ───────────────────────────────────
-class KhcnDecisionPalette {
-  static $inject = ['create', 'elementFactory', 'bpmnFactory', 'translate', 'palette']
-  private _create: any
-  private _elementFactory: any
-  private _bpmnFactory: any
-  private _translate: any
-
-  constructor(create: any, elementFactory: any, bpmnFactory: any, translate: any, palette: any) {
-    this._create = create
-    this._elementFactory = elementFactory
-    this._bpmnFactory = bpmnFactory
-    this._translate = translate
-    palette.registerProvider(this)
-  }
-
-  private _start(event: any) {
-    const bo = this._bpmnFactory.create('bpmn:ExclusiveGateway', { name: DECISION_NAME })
-    const shape = this._elementFactory.createShape({ type: 'bpmn:ExclusiveGateway', businessObject: bo })
-    this._create.start(event, shape)
-  }
-
-  getPaletteEntries() {
-    const start = (event: any) => this._start(event)
-    return {
-      'khcn-decision-gateway': {
-        group: 'khcn-approval',
-        className: 'bpmn-icon-gateway-xor',
-        title: this._translate('Mẫu KHCN: Cổng Đồng ý/Từ chối'),
-        action: { dragstart: start, click: start },
-      },
-    }
-  }
-}
-
-// ── (b) Behavior: tự gán nhãn 2 flow đi ra ──────────────────────────────────
+// ── Behavior: tự gán nhãn 2 flow đi ra ──────────────────────────────────────
 class KhcnDecisionAutoLabel {
   static $inject = ['eventBus', 'modeling']
 
@@ -86,11 +54,13 @@ class KhcnDecisionAutoLabel {
         const idx = outgoing.indexOf(getBusinessObject(conn))
 
         if (idx === 0) {
+          // "Đồng ý" KHÔNG làm default — người vẽ phải đặt điều kiện FEEL tường minh
+          // (lint chặn nếu thiếu). Tránh việc thiếu biến kết quả mà vẫn đi hướng duyệt.
           modeling.updateProperties(conn, { name: APPROVE_LABEL })
-          // "Đồng ý" là nhánh mặc định (default flow) — happy path.
-          modeling.updateProperties(src, { default: getBusinessObject(conn) })
         } else if (idx === 1) {
           modeling.updateProperties(conn, { name: REJECT_LABEL })
+          // "Từ chối" là nhánh mặc định (fail-safe khi biến thiếu/không khớp).
+          modeling.updateProperties(src, { default: getBusinessObject(conn) })
         }
       } catch {
         /* best-effort — không để lỗi behavior phá modeler */
@@ -102,8 +72,7 @@ class KhcnDecisionAutoLabel {
 /** Module didi — nạp vào additionalModules của BpmnModeler. */
 export function khcnDecisionModule() {
   return {
-    __init__: ['khcnDecisionPalette', 'khcnDecisionAutoLabel'],
-    khcnDecisionPalette: ['type', KhcnDecisionPalette],
+    __init__: ['khcnDecisionAutoLabel'],
     khcnDecisionAutoLabel: ['type', KhcnDecisionAutoLabel],
   }
 }

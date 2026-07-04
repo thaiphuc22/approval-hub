@@ -91,7 +91,20 @@ export default function ProcessDetail() {
     else message.success(`Đã kích hoạt ${p!.ma}.`)
   }
   function submitDeploy() {
-    deployForm.validateFields().then((values) => {
+    deployForm.validateFields().then(async (values) => {
+      // Cổng deploy: lint XML đã lưu — có lỗi thì không deploy.
+      if (p!.bpmnXml) {
+        const { lintBpmnXml } = await import('../bpmn/khcnLint')
+        const errors = (await lintBpmnXml(p!.bpmnXml)).filter((i) => i.severity === 'error')
+        if (errors.length > 0) {
+          message.error(
+            `Không thể deploy: sơ đồ BPMN còn ${errors.length} lỗi (vd: ${errors[0].elementName} — ${errors[0].message}). Mở "Chỉnh sửa sơ đồ" → Kiểm tra để xử lý.`,
+          )
+          return
+        }
+      } else {
+        message.warning('Quy trình chưa có sơ đồ BPMN — deploy chỉ tăng phiên bản mô phỏng.')
+      }
       const next = deployVersion(p!.ma, String(values.note || '').trim())
       message.success(`Đã deploy v${next}. Instance đang chạy giữ nguyên phiên bản cũ.`)
       setDeployOpen(false)
@@ -99,8 +112,16 @@ export default function ProcessDetail() {
     })
   }
   async function saveDiagram() {
+    // Cổng lưu: còn lỗi lint (severity=error) thì chặn — modal kết quả tự mở.
+    const issues = bpmnEditRef.current?.validateForSave() ?? []
+    const errorCount = issues.filter((i) => i.severity === 'error').length
+    if (errorCount > 0) {
+      message.error(`Không thể lưu: sơ đồ còn ${errorCount} lỗi. Bấm vào từng lỗi để tới phần tử cần sửa.`)
+      return
+    }
     const xml = await bpmnEditRef.current?.getXml()
     if (xml) updateProcess(p!.ma, { bpmnXml: xml })
+    bpmnEditRef.current?.markSaved()
     message.success('Đã lưu sơ đồ BPMN.')
     setEditingDiagram(false)
   }

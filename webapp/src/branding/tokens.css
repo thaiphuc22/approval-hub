@@ -37,13 +37,16 @@
   --vht-radius: 8px;
   --vht-radius-sm: 6px;
 
+  /* Font hệ thống — 1 nguồn cho app + bpmn.io (canvas dùng bản TS ở branding/font.ts). */
+  --vht-font: Inter, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
   /* Bề rộng sider (App cập nhật khi thu gọn) — dùng để canh Drawer né menu. */
   --vht-sider-w: 230px;
 }
 
 /* Font hệ thống thiết kế = Inter (khớp antd token.fontFamily; phủ cả phần ngoài antd). */
 body {
-  font-family: Inter, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--vht-font);
 }
 
 /*

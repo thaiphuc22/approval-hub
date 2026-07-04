@@ -23,6 +23,15 @@ declare module '@bpmn-io/properties-panel' {
   export function TextFieldEntry(props: any): any
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export function isTextFieldEntryEdited(node: any): boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export function CheckboxEntry(props: any): any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export function isCheckboxEntryEdited(node: any): boolean
+}
+
+declare module 'diagram-js-grid' {
+  const GridModule: unknown
+  export default GridModule
 }
 
 declare module 'zeebe-bpmn-moddle/resources/zeebe.json' {

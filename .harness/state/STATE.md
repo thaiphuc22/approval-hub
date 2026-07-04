@@ -4,7 +4,7 @@
 > (`DELIVERY_STATE.md` + `active-task.md` + `decisions.md`). Keep it short and current.
 > The SessionStart hook reads this file and injects a digest every session.
 
-**Last updated**: 2026-07-03
+**Last updated**: 2026-07-04
 
 ---
 
@@ -61,10 +61,31 @@ client-credentials, long-poll job worker, checklist bàn giao khách→dự án)
 - **Lớp thương hiệu bpmn.io** (`src/branding/`) — dùng chung cho **cả form-js lẫn bpmn-js**, KHÔNG sửa nội tại thư viện: `tokens.css` (1 nguồn `--vht-*`), `bpmnio-skin.css` (map → biến Carbon `--cds-*`/`--color-*`; scope `.vht-designer`/`.vht-form`/`.vht-diagram` đã kích hoạt cho bpmn-js), `translate-vi.ts` (`VI_DICT` gồm cả thuật ngữ form + BPMN; module didi). `relabel-vi.ts` = vá nhãn DOM cho form-js (form-js render nhãn thẳng, KHÔNG qua translate — phải sửa `nodeValue` tại chỗ, tránh nhân đôi node do preact). bpmn-js thì translate chuẩn nên KHÔNG cần relabel. Xem `src/branding/README.md`.
 - **Lớp UI component dùng chung** (`src/components/ui/`, barrel `index.ts`): `PageHeader` (breadcrumb/back/icon/title/tag/code/subtitle/extra), `StatCard` (Card+Statistic), `StatusTag`/`ProcessStatusTag`/`DossierStatusTag` (1 nguồn màu từ STATUS_META/DOSSIER_STATUS), `NotFound` (Result 404), `FilterBar` (Search+Select+slot trái/phải, dùng ở Catalog/DossierList), `EntityTable` (Table + phân trang mặc định + empty chuẩn + onRowClick; `pagination={false}` cho bảng nhúng). Đã thay vào **cả 7 page** (ProcessCatalog/Create/Detail, DossierList/Detail, Worklist, FormLibrary) — sửa 1 nơi, mọi trang đổi theo. BPMN cũng đã componentize: `BpmnEditor`/`BpmnViewer`/`DiagramToolbar`; eForm: `FormRenderer`/`FormDesigner`/`TaskFormModal`; văn bản: `OfficialDocument`.
 - **Deps build**: `bpmn-js@17.11.1` + `bpmn-js-properties-panel@5.60` + `@bpmn-io/properties-panel@3.47` + `zeebe-bpmn-moddle@1.16` (BPMN modeler + panel Camunda 8). `@bpmn-io/form-js@1.23` cho eForm. Đều lazy-load chunk riêng. Shim type tại `src/types/bpmn-shims.d.ts` (panel không kèm .d.ts).
-Verify: `tsc --noEmit` 0 lỗi, `vite build` OK. Chạy: `cd webapp && npm run dev`.
+- **BPMN editor đã lên cấp "cổng chất lượng" (2026-07-04, sau phiên review Codex trong `docs/req/section-04072026.md`)**:
+  (1) **Contract biến process = `src/data/variableContract.ts`** (nguồn chuẩn duy nhất, đồng bộ camunda-design.md §5.2 — bảng biến/giá trị slug ASCII: `cap` CS/TD, `ketQuaThamDinh/KyDuyet/HDKHCN/PheDuyet`, `loaiDieuChinh`, `dieuKienMacDinhDat`, `quorumDat`); preset điều kiện FEEL của `khcnConditionModule` sinh tự động từ contract (có optgroup theo biến); seed `rd0101Bpmn.ts` đã sửa `cap="Cơ sở"`→`"CS"`.
+  (2) **Gateway Đồng ý/Từ chối fail-safe**: `khcnDecisionModule` giờ đặt nhánh "Từ chối" làm DEFAULT (biến thiếu/lệch → không vô tình phê duyệt); nhánh "Đồng ý" bắt buộc có điều kiện.
+  (3) **Lint nâng cấp + thành cổng bắt buộc** (`khcnLint.ts`): rule mới — nhánh không-default thiếu condition (error), default có condition (warning), biến FEEL ngoài contract (warning), activity ≥2 outgoing = tách nhánh ngầm (error — chính lỗi token-flow RD01.01 cũ), Call Activity thiếu processId (error), multi-instance thiếu inputCollection (error)/completion condition (warning). **Lưu sơ đồ bị CHẶN khi còn error** (ProcessDetail.saveDiagram + ProcessCreate.handleSave qua `BpmnEditorHandle.validateForSave`); **deploy chạy `lintBpmnXml` headless** (modeler tách rời, dynamic import) và chặn nếu có error. Kết quả lint **click được** → chọn + cuộn tới element lỗi trên canvas.
+  (4) **Lane lưu role code bằng extension property** `zeebe:Properties/zeebe:Property name="khcn:vaiTro"` — tên lane chỉ là nhãn hiển thị, đổi tên không mất mapping; sơ đồ cũ (role theo tên lane) vẫn đọc được qua fallback.
+  Trước đó cùng ngày (Codex): seed BPMN RD01.01 đầy đủ 6 lane/28 node (`rd0101Bpmn.ts`), sửa 2 blocker token-flow (XOR sau System Check; bỏ Parallel Join deadlock), thu gọn layout, báo lỗi import XML, search/optgroup vai trò.
+- **Đợt nâng UX "BA lowcode tự vẽ" Đợt 1–5 ĐÃ THỰC THI (2026-07-04, kế hoạch = `docs/arch/bpmn-editor-ux-upgrade-plan.md`)**:
+  (Đ1) font canvas theo brand qua `textRenderer` (`branding/font.ts`, cả Editor + Viewer); lưới chấm on/off (`diagram-js-grid@2`, nhớ localStorage); nút Undo/Redo + hiển thị % zoom (click = 100%); cảnh báo beforeunload khi chưa lưu.
+  (Đ2) `VI_DICT` mở rộng ~200 chuỗi (replace menu, context pad, panel Zeebe); bẫy dev `__viMissing()` gom chuỗi chưa dịch; checklist chống thoái hóa trong `branding/README.md`.
+  (Đ3) **Drawer "Mẫu nghiệp vụ KHCN"** (`components/BpmnTemplateDrawer.tsx`, dock trái, nhóm + tên + mô tả + tìm kiếm; palette tự né) thay 15 nút palette — `khcnTemplatesModule` refactor thành builder (`buildKhcnBusinessObject`/`startKhcnTemplate`), gateway Đồng ý/Từ chối cũng thành mẫu drawer (`elementTemplates.ts` id `decision-gateway`, có thêm `moTa`); **bộ từ vựng rút gọn** `khcnVocabularyModule` lọc palette (bỏ data object/store/group) + replace menu (whitelist ~20 loại).
+  (Đ4) **Panel 2 chế độ** `khcnSimplePanelModule` (Đơn giản mặc định: whitelist nhóm theo loại element + mọi nhóm `khcn*`; Switch "Nâng cao" trên editor trả lại đầy đủ, module đọc qua ref không cần dựng lại modeler); checkbox **"Đặt làm nhánh mặc định"** ngay trong nhóm Điều kiện (tự xoá condition khi set); **dropdown job type** `khcnJobTypeModule` + danh mục `data/jobTypes.ts` (5 hệ + worker nội bộ, hỗ trợ "(tuỳ chỉnh)").
+  (Đ5) **Live-lint overlay**: lint chạy debounce 600ms sau mỗi thay đổi, chấm đỏ/cam trên element lỗi (tooltip gộp thông báo), badge số lỗi trên nút Kiểm tra; hint-card "Bắt đầu nhanh" hiện 1 lần (localStorage); **tô màu element** `khcnColorModule` (context-pad 🎨 → popup 7 màu VHT, ghi bioc chuẩn).
+  ⚠️ CHƯA click-test trình duyệt — xem Next action (0).
+Verify: `tsc --noEmit` 0 lỗi, `vite build` OK. Chạy: `cd webapp && npm run dev`. (Chưa click-test trình duyệt — cần test tay: lưu bị chặn khi có lỗi lint, click issue nhảy tới element, đổi tên lane không mất vai trò.)
 Prototype cũ `prototype/` (HTML thuần) đã bị webapp thay thế — có thể xoá.
 
-Next action: (a) khách giải OQ-002/019 (rework), OQ-006 (NFR số), OQ-021 (SSO), OQ-009 (đồng bộ), OQ-003/008;
+Next action: (0) **click-test tay đợt nâng UX BPMN** (đã code xong 2026-07-04, chưa test trình duyệt) — checklist:
+drawer Mẫu KHCN kéo-thả + tìm kiếm; toggle Nâng cao (palette/replace menu/panel đổi theo); lưới on/off nhớ trạng thái;
+undo/redo + zoom %; chấm đỏ live-lint xuất hiện/click được; checkbox "Đặt làm nhánh mặc định"; dropdown job type;
+tô màu context-pad; chạy `__viMissing()` trong console để vét chuỗi chưa Việt hóa (checklist `webapp/src/branding/README.md`);
+(0b) **Đợt 6 ĐÃ THỰC THI (2026-07-04)**: theme panel "Thuộc tính phần tử" về token VHT — 77 biến bio-properties-panel
+map trong `bpmnio-skin.css` (khối "Đợt 6"), FEEL popup + tooltip cùng tông, class-level 5 rule; **`npm run check:panel-vars`**
+(scripts/check-panel-vars.mjs) chạy sau mỗi lần nâng version bpmn.io để bắt biến bị đổi tên/xoá; bảng mapping ở `branding/README.md`.
+Cần click-test cùng đợt (0): panel cạnh form AntD, các trạng thái input + FEEL toggle + toggle switch + popup;
+(a) khách giải OQ-002/019 (rework), OQ-006 (NFR số), OQ-021 (SSO), OQ-009 (đồng bộ), OQ-003/008;
 (b) vẽ BPMN mẫu RD01.01 + chốt danh sách process variables/service task; (c) `skill-br-extractor` decision table RD04.
 Khi license + OQ chốt → nâng camunda-design.md DRAFT → LOCKED.
 

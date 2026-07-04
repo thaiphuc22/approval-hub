@@ -22,6 +22,8 @@ import {
   TextFieldEntry,
   isTextFieldEntryEdited,
 } from '@bpmn-io/properties-panel'
+import { createElement } from '@bpmn-io/properties-panel/preact'
+import { useState } from '@bpmn-io/properties-panel/preact/hooks'
 import { useService } from 'bpmn-js-properties-panel'
 import { ROLES } from '../data/roles'
 import { getAssignmentProp, setAssignmentProp } from './assignmentUtil'
@@ -31,24 +33,55 @@ function CandidateGroupEntry(props: any) {
   const { element, id } = props
   const modeling = useService('modeling')
   const bpmnFactory = useService('bpmnFactory')
+  const debounce = useService('debounceInput')
   const translate = useService('translate')
+  const [query, setQuery] = useState('')
 
   const getValue = () => getAssignmentProp(element, 'candidateGroups')
   const setValue = (value: string) =>
     setAssignmentProp(element, modeling, bpmnFactory, 'candidateGroups', value)
+  const normalizedQuery = query.trim().toLocaleLowerCase('vi')
+  const visibleRoles = ROLES.filter((r) => {
+    if (!normalizedQuery) return true
+    return `${r.code} ${r.ten} ${r.nhom}`.toLocaleLowerCase('vi').includes(normalizedQuery)
+  })
+  const current = getValue()
+  if (current && !visibleRoles.some((r) => r.code === current)) {
+    const selected = ROLES.find((r) => r.code === current)
+    if (selected) visibleRoles.unshift(selected)
+  }
+  const groups = [...new Set(visibleRoles.map((r) => r.nhom))].map((nhom) => ({
+    label: nhom,
+    children: visibleRoles
+      .filter((r) => r.nhom === nhom)
+      .map((r) => ({ value: r.code, label: `${r.ten} · ${r.code}` })),
+  }))
   const getOptions = () => [
     { value: '', label: translate('— Chưa phân công —') },
-    ...ROLES.map((r) => ({ value: r.code, label: `${r.nhom} · ${r.ten}` })),
+    ...groups,
   ]
 
-  return SelectEntry({
-    element,
-    id,
-    label: translate('Nhóm phụ trách (candidateGroups)'),
-    getValue,
-    setValue,
-    getOptions,
-  })
+  return createElement(
+    'div',
+    null,
+    TextFieldEntry({
+      element,
+      id: `${id}-search`,
+      label: translate('Tìm vai trò'),
+      description: translate('Tìm theo tên, mã hoặc nhóm đơn vị.'),
+      getValue: () => query,
+      setValue: (value: string) => setQuery(value || ''),
+      debounce,
+    }),
+    SelectEntry({
+      element,
+      id,
+      label: translate('Nhóm phụ trách (candidateGroups)'),
+      getValue,
+      setValue,
+      getOptions,
+    }),
+  )
 }
 
 function AssigneeEntry(props: any) {

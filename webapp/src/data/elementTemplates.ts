@@ -9,6 +9,8 @@
 export interface KhcnTemplate {
   id: string
   ten: string
+  /** Mô tả ngắn hiển thị trong drawer "Mẫu nghiệp vụ KHCN" (BA đọc hiểu ngay). */
+  moTa: string
   nhom: 'Phê duyệt' | 'Thẩm định' | 'Soạn thảo' | 'Tích hợp' | 'Hội đồng' | 'Hẹn giờ'
   bpmnType:
     | 'bpmn:UserTask'
@@ -16,6 +18,7 @@ export interface KhcnTemplate {
     | 'bpmn:CallActivity'
     | 'bpmn:StartEvent'
     | 'bpmn:IntermediateCatchEvent'
+    | 'bpmn:ExclusiveGateway'
   /** Giá trị dựng sẵn khi chèn phần tử. */
   defaults: {
     name: string
@@ -43,6 +46,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   // ── Phê duyệt / ký duyệt ──────────────────────────────────────────────────
   {
     id: 'sign-bgd',
+    moTa: 'Bước ký của BGĐ Trung tâm/Khối trên hồ sơ trình.',
     ten: 'Ký duyệt cấp TT/Khối',
     nhom: 'Phê duyệt',
     bpmnType: 'bpmn:UserTask',
@@ -50,15 +54,25 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'approve-tgd',
+    moTa: 'Bước phê duyệt cuối của Tổng Giám đốc VHT.',
     ten: 'Phê duyệt (TGĐ)',
     nhom: 'Phê duyệt',
     bpmnType: 'bpmn:UserTask',
     defaults: { name: 'Phê duyệt Quyết định', candidateGroups: 'TGD_VHT' },
   },
+  {
+    id: 'decision-gateway',
+    moTa: 'Cổng XOR tự gán nhãn 2 nhánh; "Từ chối" là nhánh mặc định an toàn.',
+    ten: 'Cổng Đồng ý/Từ chối',
+    nhom: 'Phê duyệt',
+    bpmnType: 'bpmn:ExclusiveGateway',
+    defaults: { name: 'Kết quả duyệt?' },
+  },
 
   // ── Thẩm định ─────────────────────────────────────────────────────────────
   {
     id: 'review-council',
+    moTa: 'Thành viên hội đồng ghi Phiếu nhận xét/đánh giá.',
     ten: 'Thẩm định (Phiếu nhận xét)',
     nhom: 'Thẩm định',
     bpmnType: 'bpmn:UserTask',
@@ -66,6 +80,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'review-check',
+    moTa: 'Chuyên quản KHCN thẩm định, kết luận Đạt/Chưa đạt.',
     ten: 'Thẩm định (Đạt/Chưa đạt)',
     nhom: 'Thẩm định',
     bpmnType: 'bpmn:UserTask',
@@ -75,6 +90,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   // ── Soạn thảo văn bản ─────────────────────────────────────────────────────
   {
     id: 'draft-report',
+    moTa: 'CQ QLKHCN tổng hợp, lập Báo cáo thẩm định.',
     ten: 'Lập Báo cáo thẩm định',
     nhom: 'Soạn thảo',
     bpmnType: 'bpmn:UserTask',
@@ -82,6 +98,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'draft-decision',
+    moTa: 'CQ QLKHCN soạn và trình ký Quyết định.',
     ten: 'Lập Quyết định',
     nhom: 'Soạn thảo',
     bpmnType: 'bpmn:UserTask',
@@ -91,6 +108,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   // ── Hội đồng (RD02/RD04/RD05) — khối tái dùng ─────────────────────────────
   {
     id: 'council-review-mi',
+    moTa: 'Mỗi thành viên HĐ một phiên ký song song (multi-instance).',
     ten: 'Thẩm định Hội đồng (đa thành viên)',
     nhom: 'Hội đồng',
     bpmnType: 'bpmn:UserTask',
@@ -103,6 +121,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'council-call',
+    moTa: 'Gọi quy trình con Hội đồng tái dùng (TLHĐ → họp phiên).',
     ten: 'Hội đồng (quy trình con)',
     nhom: 'Hội đồng',
     bpmnType: 'bpmn:CallActivity',
@@ -116,6 +135,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   // ── Hẹn giờ (RD03.06 báo cáo định kỳ · SLA/hạn xử lý) ─────────────────────
   {
     id: 'timer-cycle',
+    moTa: 'Tự khởi động quy trình theo chu kỳ (mặc định hàng tháng).',
     ten: 'Định kỳ báo cáo (hàng tháng)',
     nhom: 'Hẹn giờ',
     bpmnType: 'bpmn:StartEvent',
@@ -123,6 +143,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'timer-wait',
+    moTa: 'Tạm dừng chờ tới hạn SLA (mặc định 48 giờ).',
     ten: 'Chờ tới hạn xử lý',
     nhom: 'Hẹn giờ',
     bpmnType: 'bpmn:IntermediateCatchEvent',
@@ -132,6 +153,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   // ── Tích hợp hệ ngoài (RD03) — Service Task ───────────────────────────────
   {
     id: 'sync-qlns',
+    moTa: 'Service Task gọi worker đồng bộ nhân sự QLNS.',
     ten: 'Đồng bộ QLNS',
     nhom: 'Tích hợp',
     bpmnType: 'bpmn:ServiceTask',
@@ -139,6 +161,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'sync-ms',
+    moTa: 'Service Task gọi worker đồng bộ Mua sắm.',
     ten: 'Đồng bộ Mua sắm',
     nhom: 'Tích hợp',
     bpmnType: 'bpmn:ServiceTask',
@@ -146,6 +169,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'sync-sap',
+    moTa: 'Service Task gọi worker đồng bộ kinh phí SAP.',
     ten: 'Đồng bộ SAP',
     nhom: 'Tích hợp',
     bpmnType: 'bpmn:ServiceTask',
@@ -153,6 +177,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'sync-qlts',
+    moTa: 'Service Task gọi worker đồng bộ tài sản QLTS.',
     ten: 'Đồng bộ QLTS',
     nhom: 'Tích hợp',
     bpmnType: 'bpmn:ServiceTask',
@@ -160,6 +185,7 @@ export const KHCN_TEMPLATES: KhcnTemplate[] = [
   },
   {
     id: 'sync-plm',
+    moTa: 'Service Task gọi worker đồng bộ tiến độ PLM.',
     ten: 'Đồng bộ PLM',
     nhom: 'Tích hợp',
     bpmnType: 'bpmn:ServiceTask',

@@ -110,7 +110,22 @@
 
 Trong process **chỉ giữ**:
 - `maHoSo` — correlation key ↔ dữ liệu ở app
-- Biến điều khiển rẽ nhánh: `cap` (CS/TĐ), `loaiDieuChinh`, `ketQuaThamDinh` (Đạt/Chưa đạt), `quorumDat` (bool)
+- Biến điều khiển rẽ nhánh (giá trị = slug ASCII, nhãn tiếng Việt chỉ để hiển thị):
+
+| Biến | Kiểu | Giá trị hợp lệ |
+|---|---|---|
+| `cap` | string | `CS` (Cơ sở) · `TD` (Tập đoàn) |
+| `ketQuaThamDinh` | string | `dat` · `dong_y_bo_sung` · `hieu_chinh` · `tu_choi` |
+| `ketQuaKyDuyet` | string | `dong_y` · `hieu_chinh` · `tu_choi` |
+| `ketQuaHDKHCN` | string | `dong_y` · `hieu_chinh` |
+| `ketQuaPheDuyet` | string | `dong_y` · `hieu_chinh` · `tu_choi` |
+| `loaiDieuChinh` | string | `chu_nhiem` · `khong_tang_du_toan` · `tang_khong_vuot_chu_truong` · `vuot_chu_truong` |
+| `dieuKienMacDinhDat` | boolean | kết quả system check điều kiện mặc định |
+| `quorumDat` | boolean | đạt quorum hội đồng |
+
+> **Nguồn chuẩn trong code**: `webapp/src/data/variableContract.ts` — preset điều kiện FEEL
+> của editor và lint đều sinh/kiểm tra từ file này. Sửa contract → sửa ở đó trước, tài liệu
+> này cập nhật theo.
 
 **Tuyệt đối không** để: nội dung hồ sơ, danh sách phiếu, file PDF, dự toán chi tiết.
 → Camunda phình, khó version, rò rỉ dữ liệu.

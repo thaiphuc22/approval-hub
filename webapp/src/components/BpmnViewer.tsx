@@ -6,6 +6,7 @@ import 'bpmn-js/dist/assets/bpmn-js.css'
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
 import 'diagram-js-minimap/assets/diagram-js-minimap.css'
 import '../branding/bpmnio-skin.css'
+import { VHT_TEXT_RENDERER } from '../branding/font'
 import { STARTER_BPMN } from '../data/bpmn'
 import DiagramToolbar from './DiagramToolbar'
 
@@ -32,13 +33,15 @@ export default function BpmnViewer({ xml, height = '64vh' }: Props) {
       container: el,
       additionalModules: [minimapModule],
       minimap: { open: false },
+      textRenderer: VHT_TEXT_RENDERER,
     } as never)
     viewerRef.current = viewer
     viewer
       .importXML(xml || STARTER_BPMN)
       .then(() => {
-        const canvas = viewer.get('canvas') as { zoom: (m: string) => void }
-        canvas.zoom('fit-viewport')
+        const canvas = viewer.get('canvas') as { zoom: (m?: string | number) => number }
+        const fittedZoom = canvas.zoom('fit-viewport')
+        if (fittedZoom < 0.42) canvas.zoom(0.42)
       })
       .catch(() => {
         /* XML lỗi — bỏ qua */

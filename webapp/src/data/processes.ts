@@ -1,3 +1,5 @@
+import { RD0101_BPMN } from './rd0101Bpmn'
+
 // Dữ liệu mock cho màn Danh mục quy trình.
 // Seed từ catalog RD01–RD10 (docs/req) — trạng thái phản ánh đúng độ phủ RTM.
 
@@ -79,6 +81,7 @@ export const seedProcesses: ProcessDef[] = [
       { key: 't5', ten: 'Hội đồng KHCN phê duyệt', vaiTro: 'HĐ KHCN VHT', hanhDong: 'Phê duyệt', formKey: 'phieu-phe-duyet' },
       { key: 't6', ten: 'TGĐ phê duyệt Quyết định chủ trương', vaiTro: 'TGĐ VHT', hanhDong: 'Phê duyệt', formKey: 'phieu-phe-duyet' },
     ],
+    bpmnXml: RD0101_BPMN,
   },
   {
     ma: 'RD01.02', ten: 'Xét duyệt Chủ trương cấp Tập đoàn', nhom: 'RD01', pha: 1,

@@ -3,8 +3,10 @@
  *
  * Trong tài liệu QTKHCN, mỗi "Nhóm tác nhân" chính là một LANE. Module này:
  *  (a) Provider: thêm nhóm "Vai trò (KHCN)" cho bpmn:Lane — chọn vai trò từ danh
- *      mục ROLES; lưu bằng chính TÊN LANE (name = nhãn vai trò) → XML sạch, đọc
- *      được, và không cần extension riêng cho lane.
+ *      mục ROLES; lưu ROLE CODE trong extension property riêng
+ *      (zeebe:Properties → zeebe:Property name="khcn:vaiTro") — tên lane CHỈ là
+ *      nhãn hiển thị, BA đổi tên lane để trình bày KHÔNG làm mất mapping vai trò.
+ *      (Sơ đồ cũ lưu role qua tên lane vẫn đọc được nhờ fallback theo nhãn.)
  *  (b) Behavior: khi một User Task được tạo/di chuyển vào lane có vai trò và task
  *      CHƯA gán candidateGroups → tự điền theo vai trò của lane. Không đè lựa chọn
  *      đã có của người dùng.
@@ -14,14 +16,78 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { is, getBusinessObject } from 'bpmn-js/lib/util/ModelUtil'
-import { SelectEntry, isSelectEntryEdited } from '@bpmn-io/properties-panel'
+import { SelectEntry, isSelectEntryEdited, TextFieldEntry } from '@bpmn-io/properties-panel'
+import { createElement } from '@bpmn-io/properties-panel/preact'
+import { useState } from '@bpmn-io/properties-panel/preact/hooks'
 import { useService } from 'bpmn-js-properties-panel'
 import { ROLES, roleCodeByLabel, roleLabel } from '../data/roles'
 import { getAssignmentProp, setAssignmentProp } from './assignmentUtil'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
+/** Tên extension property giữ role code của lane. */
+const LANE_ROLE_PROP = 'khcn:vaiTro'
+
+function getZeebeProperties(bo: any): any {
+  const ee = bo.get('extensionElements')
+  if (!ee) return undefined
+  return (ee.get('values') || []).find((v: any) => is(v, 'zeebe:Properties'))
+}
+
+function findRoleProp(bo: any): any {
+  const props = getZeebeProperties(bo)
+  if (!props) return undefined
+  return (props.get('properties') || []).find((p: any) => p.get('name') === LANE_ROLE_PROP)
+}
+
 function laneRoleCode(laneEl: any): string {
-  return roleCodeByLabel(getBusinessObject(laneEl).get('name') || '')
+  const bo = getBusinessObject(laneEl)
+  const prop = findRoleProp(bo)
+  if (prop) return prop.get('value') || ''
+  // Tương thích sơ đồ cũ: suy từ tên lane (trước đây name = nhãn vai trò).
+  return roleCodeByLabel(bo.get('name') || '')
+}
+
+/** Ghi role code vào extension property; tên lane chỉ cập nhật khi đang do module quản. */
+function setLaneRole(laneEl: any, modeling: any, bpmnFactory: any, code: string) {
+  const bo = getBusinessObject(laneEl)
+
+  let ee = bo.get('extensionElements')
+  if (!ee) {
+    ee = bpmnFactory.create('bpmn:ExtensionElements', { values: [] })
+    ee.$parent = bo
+    modeling.updateModdleProperties(laneEl, bo, { extensionElements: ee })
+  }
+  let props = getZeebeProperties(bo)
+  if (!props) {
+    props = bpmnFactory.create('zeebe:Properties', { properties: [] })
+    props.$parent = ee
+    modeling.updateModdleProperties(laneEl, ee, { values: [...(ee.get('values') || []), props] })
+  }
+  const existing = findRoleProp(bo)
+  if (!code) {
+    if (existing) {
+      modeling.updateModdleProperties(laneEl, props, {
+        properties: (props.get('properties') || []).filter((p: any) => p !== existing),
+      })
+    }
+  } else if (existing) {
+    modeling.updateModdleProperties(laneEl, existing, { value: code })
+  } else {
+    const prop = bpmnFactory.create('zeebe:Property', { name: LANE_ROLE_PROP, value: code })
+    prop.$parent = props
+    modeling.updateModdleProperties(laneEl, props, {
+      properties: [...(props.get('properties') || []), prop],
+    })
+  }
+
+  // Tên lane là nhãn hiển thị: chỉ tự đặt khi lane chưa có tên hoặc tên hiện tại
+  // chính là nhãn một vai trò (tức do module đặt trước đó) — tên BA tự gõ giữ nguyên.
+  const curName = bo.get('name') || ''
+  const nameIsManaged = !curName || !!roleCodeByLabel(curName)
+  if (nameIsManaged) {
+    if (code) modeling.updateProperties(laneEl, { name: roleLabel(code) })
+    else if (curName) modeling.updateProperties(laneEl, { name: '' })
+  }
 }
 
 /** Tìm lane chứa một flow node (qua flowNodeRef của các Lane). */
@@ -38,24 +104,55 @@ function findContainingLane(element: any, elementRegistry: any): any {
 function LaneRoleEntry(props: any) {
   const { element, id } = props
   const modeling = useService('modeling')
+  const bpmnFactory = useService('bpmnFactory')
   const translate = useService('translate')
+  const debounce = useService('debounceInput')
+  const [query, setQuery] = useState('')
 
   const getValue = () => laneRoleCode(element)
-  const setValue = (code: string) =>
-    modeling.updateProperties(element, { name: code ? roleLabel(code) : '' })
+  const setValue = (code: string) => setLaneRole(element, modeling, bpmnFactory, code || '')
+  const normalizedQuery = query.trim().toLocaleLowerCase('vi')
+  const visibleRoles = ROLES.filter((r) => {
+    if (!normalizedQuery) return true
+    return `${r.code} ${r.ten} ${r.nhom}`.toLocaleLowerCase('vi').includes(normalizedQuery)
+  })
+  const current = getValue()
+  if (current && !visibleRoles.some((r) => r.code === current)) {
+    const selected = ROLES.find((r) => r.code === current)
+    if (selected) visibleRoles.unshift(selected)
+  }
+  const groups = [...new Set(visibleRoles.map((r) => r.nhom))].map((nhom) => ({
+    label: nhom,
+    children: visibleRoles
+      .filter((r) => r.nhom === nhom)
+      .map((r) => ({ value: r.code, label: `${r.ten} · ${r.code}` })),
+  }))
   const getOptions = () => [
     { value: '', label: translate('— Không gán vai trò —') },
-    ...ROLES.map((r) => ({ value: r.code, label: `${r.nhom} · ${r.ten}` })),
+    ...groups,
   ]
 
-  return SelectEntry({
-    element,
-    id,
-    label: translate('Vai trò của lane'),
-    getValue,
-    setValue,
-    getOptions,
-  })
+  return createElement(
+    'div',
+    null,
+    TextFieldEntry({
+      element,
+      id: `${id}-search`,
+      label: translate('Tìm vai trò'),
+      description: translate('Tìm theo tên, mã hoặc nhóm đơn vị.'),
+      getValue: () => query,
+      setValue: (value: string) => setQuery(value || ''),
+      debounce,
+    }),
+    SelectEntry({
+      element,
+      id,
+      label: translate('Vai trò của lane'),
+      getValue,
+      setValue,
+      getOptions,
+    }),
+  )
 }
 
 class KhcnLanePropertiesProvider {

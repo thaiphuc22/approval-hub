@@ -13,20 +13,9 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { is, getBusinessObject } from 'bpmn-js/lib/util/ModelUtil'
-import { SelectEntry, isSelectEntryEdited } from '@bpmn-io/properties-panel'
+import { SelectEntry, isSelectEntryEdited, CheckboxEntry, isCheckboxEntryEdited } from '@bpmn-io/properties-panel'
 import { useService } from 'bpmn-js-properties-panel'
-
-/** Preset điều kiện nghiệp vụ — FEEL dựa trên BIẾN process (không hardcode số). */
-export const CONDITION_PRESETS: { value: string; label: string }[] = [
-  { value: '=cap = "Cơ sở"', label: 'Cấp: Cơ sở' },
-  { value: '=cap = "Tập đoàn"', label: 'Cấp: Tập đoàn' },
-  { value: '=ketQua = "dat"', label: 'Kết quả: Đạt / Đồng ý' },
-  { value: '=ketQua = "chua_dat"', label: 'Kết quả: Chưa đạt / Từ chối' },
-  { value: '=loaiDieuChinh = "chu_nhiem"', label: 'Điều chỉnh: chủ nhiệm đề tài' },
-  { value: '=loaiDieuChinh = "khong_tang_du_toan"', label: 'Điều chỉnh: không tăng tổng dự toán' },
-  { value: '=loaiDieuChinh = "tang_khong_vuot_chu_truong"', label: 'Điều chỉnh: tăng, không vượt chủ trương' },
-  { value: '=loaiDieuChinh = "vuot_chu_truong"', label: 'Điều chỉnh: vượt chủ trương' },
-]
+import { CONDITION_PRESETS } from '../data/variableContract'
 
 // ── helpers (bpmn:conditionExpression) ──────────────────────────────────────
 function getCondition(flow: any): string {
@@ -56,7 +45,15 @@ function ConditionPresetEntry(props: any) {
   const setValue = (value: string) => setCondition(element, modeling, bpmnFactory, value)
   const getOptions = () => {
     const cur = getCondition(element)
-    const opts = [{ value: '', label: translate('— Không điều kiện (mặc định) —') }, ...CONDITION_PRESETS]
+    // Nhóm preset theo biến (optgroup) — panel hỗ trợ children native.
+    const groups = [...new Set(CONDITION_PRESETS.map((p) => p.group))].map((group) => ({
+      label: group,
+      children: CONDITION_PRESETS.filter((p) => p.group === group).map((p) => ({
+        value: p.value,
+        label: p.label,
+      })),
+    }))
+    const opts: any[] = [{ value: '', label: translate('— Không đặt điều kiện —') }, ...groups]
     // Nếu điều kiện hiện tại là biểu thức tuỳ chỉnh (không thuộc preset) → hiện để không mất giá trị.
     if (cur && !CONDITION_PRESETS.some((p) => p.value === cur)) {
       opts.push({ value: cur, label: `${translate('(tuỳ chỉnh)')} ${cur}` })
@@ -71,6 +68,43 @@ function ConditionPresetEntry(props: any) {
     getValue,
     setValue,
     getOptions,
+  })
+}
+
+/**
+ * "Đặt làm nhánh mặc định" ngay trong nhóm Điều kiện — BA không phải mò sang
+ * panel Zeebe gốc. Đặt default → tự XOÁ điều kiện trên flow (Camunda bỏ qua
+ * điều kiện của default flow; lint cũng cảnh báo trường hợp này).
+ */
+function DefaultFlowEntry(props: any) {
+  const { element, id } = props
+  const modeling = useService('modeling')
+  const bpmnFactory = useService('bpmnFactory')
+  const translate = useService('translate')
+
+  const sourceEl = element.source
+  const getValue = () => {
+    if (!sourceEl) return false
+    const src = getBusinessObject(sourceEl)
+    return src.get('default') === getBusinessObject(element)
+  }
+  const setValue = (checked: boolean) => {
+    if (!sourceEl) return
+    if (checked) {
+      setCondition(element, modeling, bpmnFactory, '')
+      modeling.updateProperties(sourceEl, { default: getBusinessObject(element) })
+    } else {
+      modeling.updateProperties(sourceEl, { default: undefined })
+    }
+  }
+
+  return CheckboxEntry({
+    element,
+    id,
+    label: translate('Đặt làm nhánh mặc định'),
+    description: translate('Đi nhánh này khi không nhánh nào khớp điều kiện (khuyến nghị: nhánh Từ chối/hiệu chỉnh).'),
+    getValue,
+    setValue,
   })
 }
 
@@ -95,6 +129,12 @@ class KhcnConditionPropertiesProvider {
               element,
               component: ConditionPresetEntry,
               isEdited: isSelectEntryEdited,
+            },
+            {
+              id: 'khcn-defaultFlow',
+              element,
+              component: DefaultFlowEntry,
+              isEdited: isCheckboxEntryEdited,
             },
           ],
         })

@@ -43,6 +43,13 @@ export default function ProcessCreate() {
     } catch {
       return
     }
+    // Cổng lưu: còn lỗi lint (severity=error) thì chặn — modal kết quả tự mở.
+    const issues = editorRef.current?.validateForSave() ?? []
+    const errorCount = issues.filter((i) => i.severity === 'error').length
+    if (errorCount > 0) {
+      message.error(`Không thể lưu: sơ đồ còn ${errorCount} lỗi. Bấm vào từng lỗi để tới phần tử cần sửa.`)
+      return
+    }
     setSaving(true)
     try {
       const bpmnXml = (await editorRef.current?.getXml()) ?? ''
