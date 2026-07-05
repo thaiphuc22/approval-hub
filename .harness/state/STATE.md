@@ -4,7 +4,7 @@
 > (`DELIVERY_STATE.md` + `active-task.md` + `decisions.md`). Keep it short and current.
 > The SessionStart hook reads this file and injects a digest every session.
 
-**Last updated**: 2026-07-04
+**Last updated**: 2026-07-05
 
 ---
 
@@ -74,10 +74,22 @@ client-credentials, long-poll job worker, checklist bàn giao khách→dự án)
   (Đ4) **Panel 2 chế độ** `khcnSimplePanelModule` (Đơn giản mặc định: whitelist nhóm theo loại element + mọi nhóm `khcn*`; Switch "Nâng cao" trên editor trả lại đầy đủ, module đọc qua ref không cần dựng lại modeler); checkbox **"Đặt làm nhánh mặc định"** ngay trong nhóm Điều kiện (tự xoá condition khi set); **dropdown job type** `khcnJobTypeModule` + danh mục `data/jobTypes.ts` (5 hệ + worker nội bộ, hỗ trợ "(tuỳ chỉnh)").
   (Đ5) **Live-lint overlay**: lint chạy debounce 600ms sau mỗi thay đổi, chấm đỏ/cam trên element lỗi (tooltip gộp thông báo), badge số lỗi trên nút Kiểm tra; hint-card "Bắt đầu nhanh" hiện 1 lần (localStorage); **tô màu element** `khcnColorModule` (context-pad 🎨 → popup 7 màu VHT, ghi bioc chuẩn).
   ⚠️ CHƯA click-test trình duyệt — xem Next action (0).
+- **Đợt UI/UX 2026-07-05 (7 hạng mục, plan `~/.claude/plans/keen-jingling-hejlsberg.md`) ĐÃ THỰC THI**:
+  (1) pagination luôn hiện + size changer (bỏ `hideOnSinglePage` trong `EntityTable`; Dashboard bỏ slice(0,5) → pageSize 5; NhiemVuDetail pageSize 5; riêng bảng bước ProcessDetail giữ không phân trang);
+  (2) menu trái: **fix bug** `darkItemSelectedBg/Color` là chuỗi literal `"RED_CHROME"` → active nền `RED #ee0033` chữ trắng, hover trắng mờ 10%;
+  (3) icon thu/mở menu ở header màu `var(--vht-red)`; (4) Breadcrumb đỏ qua token `components.Breadcrumb` (lastItem RED, item/link RED_CHROME);
+  (5) **bỏ trường `pha`** khỏi `ProcessDef` + 16 seed + Catalog (cột/lọc) + Create + Detail;
+  (6) **Form designer custom triệt để ngang BpmnEditor** — `FormDesigner.tsx` viết lại: flex row full-height, dock trái "Thành phần" = palette NATIVE portal (`palette:{parent}` — verify dist 1.23: ModularSection createPortal, dragula theo class nên kéo–thả OK), dock phải "Thuộc tính trường" (`propertiesPanel:{parent}`), pane "Xem trước trực tiếp" (FormRenderer, debounce 300ms qua event `changed`), toolbar Undo/Redo + Tag "Chưa lưu" + beforeunload; **`src/formjs/khcnFormSimplePanelModule.ts`** (mới) = chế độ Đơn giản/Nâng cao + Việt hoá label nhóm trong data (⚠️ form-js `registerProvider(provider, priority)` — NGƯỢC tham số so bpmn; refresh panel = fire `selection.changed`); FormLibrary: drawer full-height (body flex, bỏ 68vh), confirm khi đóng lúc dirty, "Tạo & mở designer" mở designer thật (`addForm` trả `FormMeta|null`); CSS block "Đợt FD" trong `bpmnio-skin.css` (`.vht-fd-palette-dock`/`.vht-fd-canvas`, KHÔNG đụng block Đợt 6 dùng chung); VI_DICT +40 chuỗi panel/palette, relabel thêm 4 selector;
+  (7) users.ts đổi 8 tên placeholder → tên thật, 4 user demo khớp người trong mock data (pm@ = Trần Văn Nam chủ nhiệm RD.2026.012...). Dọn 2 unused import có sẵn (ProcessDetail/Worklist).
 Verify: `tsc --noEmit` 0 lỗi, `vite build` OK. Chạy: `cd webapp && npm run dev`. (Chưa click-test trình duyệt — cần test tay: lưu bị chặn khi có lỗi lint, click issue nhảy tới element, đổi tên lane không mất vai trò.)
 Prototype cũ `prototype/` (HTML thuần) đã bị webapp thay thế — có thể xoá.
 
-Next action: (0) **click-test tay đợt nâng UX BPMN** (đã code xong 2026-07-04, chưa test trình duyệt) — checklist:
+Next action: (00) **click-test tay đợt UI/UX 2026-07-05** — checklist: pager + chọn số dòng hiện ở mọi bảng
+(kể cả bảng ít dòng như Quản trị người dùng); menu active nền đỏ #ee0033; icon thu/mở menu + breadcrumb đỏ;
+màn Quy trình không còn "Pha" (tạo/sửa/lọc OK); form designer: kéo–thả từ dock "Thành phần", panel dock phải
+đóng/mở, Đơn giản↔Nâng cao (nhóm lọc + label Việt), Xem trước live ~300ms, Undo/Redo, tag "Chưa lưu" + confirm
+đóng drawer + beforeunload, "Tạo & mở designer" mở drawer thật; đăng nhập pm@ → header "Trần Văn Nam";
+(0) **click-test tay đợt nâng UX BPMN** (đã code xong 2026-07-04, chưa test trình duyệt) — checklist:
 drawer Mẫu KHCN kéo-thả + tìm kiếm; toggle Nâng cao (palette/replace menu/panel đổi theo); lưới on/off nhớ trạng thái;
 undo/redo + zoom %; chấm đỏ live-lint xuất hiện/click được; checkbox "Đặt làm nhánh mặc định"; dropdown job type;
 tô màu context-pad; chạy `__viMissing()` trong console để vét chuỗi chưa Việt hóa (checklist `webapp/src/branding/README.md`);
