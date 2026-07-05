@@ -5,8 +5,7 @@ import { buildYKien, isApprove } from '../forms'
 import { useDossiers } from '../store/DossierContext'
 import { useProcesses } from '../store/ProcessContext'
 import { useForms } from '../store/FormContext'
-
-const CURRENT_USER = 'Nguyễn Gia Vinh'
+import { useAuth } from '../store/AuthContext'
 
 interface Props {
   dossierId: string | null
@@ -24,6 +23,8 @@ export default function TaskFormModal({ dossierId, open, onClose }: Props) {
   const { getById, approveStep, rejectStep } = useDossiers()
   const { getByMa } = useProcesses()
   const { getForm } = useForms()
+  const { user } = useAuth()
+  const currentUser = user?.hoTen ?? 'Người dùng'
   const formRef = useRef<FormRendererHandle>(null)
 
   const d = dossierId ? getById(dossierId) : undefined
@@ -43,10 +44,10 @@ export default function TaskFormModal({ dossierId, open, onClose }: Props) {
     const data = res.data
     const yKien = buildYKien(data)
     if (isApprove(data.ketLuan)) {
-      approveStep(d.id, CURRENT_USER, yKien)
+      approveStep(d.id, currentUser, yKien)
       message.success(`Đã xử lý & thông qua bước "${step.ten}".`)
     } else {
-      rejectStep(d.id, yKien || 'Đề nghị chỉnh sửa hồ sơ.', CURRENT_USER)
+      rejectStep(d.id, yKien || 'Đề nghị chỉnh sửa hồ sơ.', currentUser)
       message.warning('Đã trả hồ sơ để chỉnh sửa.')
     }
     onClose()

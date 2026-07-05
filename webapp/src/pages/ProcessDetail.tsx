@@ -10,6 +10,7 @@ import {
   Form,
   Input,
   Modal,
+  Popconfirm,
   Row,
   Select,
   Space,
@@ -320,7 +321,16 @@ export default function ProcessDetail() {
             <Space>
               <Button icon={<EditOutlined />} onClick={startEdit}>Chỉnh sửa</Button>
               {p.trangThai === 'active' ? (
-                <Button danger icon={<PauseCircleOutlined />} onClick={onToggle}>Tạm ngừng</Button>
+                <Popconfirm
+                  title="Tạm ngừng quy trình?"
+                  description="Quy trình sẽ ngừng nhận instance mới. Có thể kích hoạt lại sau."
+                  okText="Tạm ngừng"
+                  cancelText="Huỷ"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={onToggle}
+                >
+                  <Button danger icon={<PauseCircleOutlined />}>Tạm ngừng</Button>
+                </Popconfirm>
               ) : (
                 <Button icon={<PlayCircleOutlined />} disabled={p.trangThai === 'planned'} onClick={onToggle}>Kích hoạt</Button>
               )}

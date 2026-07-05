@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Col, Empty, Row, Space, Tabs, Tag, Timeline, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { HistoryOutlined } from '@ant-design/icons'
-import { PageHeader, StatCard, StatusTag, FilterBar, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, StatusTag, FilterBar, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 import {
   EVENT_META,
   eventDossiers,
@@ -170,8 +170,8 @@ function IntegrationLog() {
         rowKey="id"
         columns={columns}
         dataSource={rows}
-        pagination={false}
         emptyText="Không có lần chạy job khớp bộ lọc."
+        scroll={{ y: LIST_SCROLL_Y }}
       />
 
       <Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 14 }}>

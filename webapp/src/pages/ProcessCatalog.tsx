@@ -24,7 +24,7 @@ import {
   type ProcessStatus,
 } from '../data/processes'
 import { useProcesses } from '../store/ProcessContext'
-import { PageHeader, StatCard, ProcessStatusTag, FilterBar, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, ProcessStatusTag, FilterBar, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 
 const { Text } = Typography
 
@@ -158,6 +158,7 @@ export default function ProcessCatalog() {
         dataSource={rows}
         onRowClick={(record) => navigate(`/quy-trinh/${encodeURIComponent(record.ma)}`)}
         emptyText="Không có quy trình khớp bộ lọc."
+        scroll={{ y: LIST_SCROLL_Y }}
       />
 
       <Modal

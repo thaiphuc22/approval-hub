@@ -10,7 +10,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { useNavigate } from 'react-router-dom'
 import { type Dossier, type DossierStatus } from '../data/dossiers'
 import { useDossiers } from '../store/DossierContext'
-import { PageHeader, StatCard, DossierStatusTag, FilterBar, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, DossierStatusTag, FilterBar, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 
 const { Text } = Typography
 
@@ -110,6 +110,7 @@ export default function DossierList() {
         dataSource={rows}
         onRowClick={(record) => navigate(`/ho-so/${encodeURIComponent(record.id)}`)}
         emptyText="Không có hồ sơ khớp bộ lọc."
+        scroll={{ y: LIST_SCROLL_Y }}
       />
     </div>
   )

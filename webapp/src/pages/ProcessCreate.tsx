@@ -90,7 +90,10 @@ export default function ProcessCreate() {
   }
 
   return (
-    <div>
+    // Ghim chiều cao trang theo viewport còn lại (dưới Header ~60 + padding Content
+    // 48): form "Thông tin chung" cố định, Card "Sơ đồ BPMN" chiếm phần còn lại nên
+    // canvas + drawer + panel chỉ cuộn nội bộ, không kéo cả trang cuộn theo.
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)' }}>
       <PageHeader
         breadcrumb={[
           { label: 'Quản lý quy trình', to: '/quy-trinh' },
@@ -111,7 +114,7 @@ export default function ProcessCreate() {
       />
 
       {/* ── Section trên: Thông tin chung ─────────────────────────────────── */}
-      <Card title="Thông tin chung" size="small" style={{ marginBottom: 16 }}>
+      <Card title="Thông tin chung" size="small" style={{ marginBottom: 16, flex: '0 0 auto' }}>
         <Form form={form} layout="vertical" initialValues={{ nhom: 'RD01', pha: 2 }}>
           <Row gutter={12}>
             <Col xs={24} sm={8} md={5}>
@@ -147,11 +150,12 @@ export default function ProcessCreate() {
       <Card
         title="Sơ đồ BPMN"
         size="small"
-        styles={{ body: { padding: 0 } }}
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: 0, flex: 1, minHeight: 0 } }}
         extra={<Text type="secondary" style={{ fontSize: 12 }}>Kéo phần tử từ palette · bấm 1 node để cấu hình ở panel phải</Text>}
       >
         <Suspense fallback={<div style={{ padding: 60, textAlign: 'center' }}><Spin tip="Đang tải BPMN editor..." /></div>}>
-          <BpmnEditor ref={editorRef} forms={forms} />
+          <BpmnEditor ref={editorRef} forms={forms} height="100%" />
         </Suspense>
       </Card>
     </div>

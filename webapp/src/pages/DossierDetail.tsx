@@ -14,6 +14,7 @@ import {
   Steps,
   Tag,
   Timeline,
+  Tooltip,
   Typography,
 } from 'antd'
 import {
@@ -32,7 +33,7 @@ import { templatesFor, type DocTemplate } from '../data/docTemplates'
 import { useDossiers } from '../store/DossierContext'
 import TaskFormModal from '../components/TaskFormModal'
 import OfficialDocument, { printOfficialDoc } from '../components/OfficialDocument'
-import { PageHeader, NotFound, DossierStatusTag } from '../components/ui'
+import { PageHeader, NotFound, DossierStatusTag, StatusTag } from '../components/ui'
 
 const { Text, Paragraph } = Typography
 
@@ -41,6 +42,13 @@ const STEPS_STATUS: Record<StepStatus, 'finish' | 'process' | 'wait' | 'error'> 
   current: 'process',
   pending: 'wait',
   rejected: 'error',
+}
+
+/** Màu + nhãn tag cho trạng thái bước (1 nguồn trong màn) — thay cho Tag color rời rạc. */
+const STEP_TAG: Partial<Record<StepStatus, { color: string; label: string }>> = {
+  current: { color: 'blue', label: 'Đang xử lý' },
+  rejected: { color: 'red', label: 'Từ chối' },
+  done: { color: 'green', label: 'Hoàn thành' },
 }
 
 function timelineDot(s: StepStatus) {
@@ -153,7 +161,16 @@ export default function DossierDetail() {
             <List
               dataSource={d.taiLieu}
               renderItem={(t) => (
-                <List.Item actions={[<a key="v">Xem</a>, <a key="d">Tải</a>]}>
+                <List.Item
+                  actions={[
+                    <Tooltip key="v" title="Sắp ra mắt — chưa nối kho tài liệu">
+                      <Button type="link" size="small" style={{ paddingInline: 4 }} disabled>Xem</Button>
+                    </Tooltip>,
+                    <Tooltip key="d" title="Sắp ra mắt — chưa nối kho tài liệu">
+                      <Button type="link" size="small" style={{ paddingInline: 4 }} disabled>Tải</Button>
+                    </Tooltip>,
+                  ]}
+                >
                   <List.Item.Meta avatar={fileIcon(t.loai)} title={t.ten} description={t.loai} />
                 </List.Item>
               )}
@@ -203,9 +220,9 @@ export default function DossierDetail() {
                     <div style={{ opacity: s.trangThai === 'pending' ? 0.55 : 1 }}>
                       <Space align="center" wrap>
                         <Text strong>{s.ten}</Text>
-                        {s.trangThai === 'current' && <Tag color="blue">Đang xử lý</Tag>}
-                        {s.trangThai === 'rejected' && <Tag color="red">Từ chối</Tag>}
-                        {s.trangThai === 'done' && <Tag color="green">Hoàn thành</Tag>}
+                        {STEP_TAG[s.trangThai] && (
+                          <StatusTag color={STEP_TAG[s.trangThai]!.color} label={STEP_TAG[s.trangThai]!.label} />
+                        )}
                       </Space>
                       <div><Text type="secondary" style={{ fontSize: 12 }}>{s.vaiTro}</Text></div>
                       {s.nguoi && <div style={{ fontSize: 13 }}>{s.nguoi}</div>}
@@ -235,7 +252,7 @@ export default function DossierDetail() {
         footer={[
           <Button key="close" onClick={() => setDocTpl(null)}>Đóng</Button>,
           <Button key="print" type="primary" icon={<PrinterOutlined />}
-            onClick={() => { if (builtDoc) printOfficialDoc(builtDoc) }}
+            onClick={() => { if (builtDoc && !printOfficialDoc(builtDoc)) message.warning('Trình duyệt chặn cửa sổ in — hãy cho phép popup.') }}
           >In / Lưu PDF</Button>,
         ]}
       >

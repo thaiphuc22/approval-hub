@@ -32,7 +32,7 @@ import { useForms } from '../store/FormContext'
 import { useProcesses } from '../store/ProcessContext'
 import FormRenderer from '../components/FormRenderer'
 import { type FormDesignerHandle } from '../components/FormDesigner'
-import { PageHeader, StatCard, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 
 // Trình thiết kế form-js khá nặng → chỉ nạp khi mở drawer (tách chunk riêng).
 const FormDesigner = lazy(() => import('../components/FormDesigner'))
@@ -200,7 +200,7 @@ export default function FormLibrary() {
       </Row>
 
       <Card>
-        <EntityTable<FormMeta> rowKey="key" columns={columns} dataSource={list} pagination={false} />
+        <EntityTable<FormMeta> rowKey="key" columns={columns} dataSource={list} scroll={{ y: LIST_SCROLL_Y }} />
       </Card>
 
       {/* Tạo biểu mẫu */}

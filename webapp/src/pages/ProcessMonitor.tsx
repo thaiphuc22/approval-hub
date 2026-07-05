@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Alert, Col, Modal, Row, Space, Tag, Tooltip, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { WarningOutlined, ClockCircleOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { PageHeader, StatCard, StatusTag, FilterBar, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, StatusTag, FilterBar, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 import {
   INSTANCE_STATE,
   seedInstances,
@@ -131,6 +131,7 @@ export default function ProcessMonitor() {
         dataSource={rows}
         onRowClick={setDetail}
         emptyText="Không có instance khớp bộ lọc."
+        scroll={{ y: LIST_SCROLL_Y }}
       />
 
       <Modal

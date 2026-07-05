@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Avatar, Button, Col, Row, Space, Tag, Typography } from 'antd'
+import { Alert, Avatar, Button, Col, Row, Space, Tag, Tooltip, Typography } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { users, ALL_ROLES, type AppUser } from '../data/users'
@@ -79,12 +79,16 @@ export default function UserManagement() {
       align: 'right',
       render: () => (
         <Space size={4}>
-          <Button type="link" size="small" style={{ paddingInline: 4 }}>
-            Sửa
-          </Button>
-          <Button type="link" size="small" danger style={{ paddingInline: 4 }}>
-            Khoá
-          </Button>
+          <Tooltip title="Sắp ra mắt (F4 — RBAC / IAM)">
+            <Button type="link" size="small" style={{ paddingInline: 4 }} disabled>
+              Sửa
+            </Button>
+          </Tooltip>
+          <Tooltip title="Sắp ra mắt (F4 — RBAC / IAM)">
+            <Button type="link" size="small" danger style={{ paddingInline: 4 }} disabled>
+              Khoá
+            </Button>
+          </Tooltip>
         </Space>
       ),
     },
@@ -96,10 +100,19 @@ export default function UserManagement() {
         title="Quản trị người dùng"
         style={{ marginBottom: 0 }}
         extra={
-          <Button type="primary" icon={<PlusOutlined />}>
-            Thêm người dùng
-          </Button>
+          <Tooltip title="Sắp ra mắt (F4 — RBAC / IAM)">
+            <Button type="primary" icon={<PlusOutlined />} disabled>
+              Thêm người dùng
+            </Button>
+          </Tooltip>
         }
+      />
+
+      <Alert
+        type="info"
+        showIcon
+        style={{ margin: '16px 0' }}
+        message="Màn quản trị người dùng đang ở dạng mô phỏng — dữ liệu tĩnh, các thao tác Thêm/Sửa/Khoá sẽ mở khi triển khai phân quyền RBAC/IAM (F4)."
       />
 
       <Row gutter={14} style={{ margin: '18px 0' }}>

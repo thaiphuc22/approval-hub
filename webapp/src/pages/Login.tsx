@@ -11,6 +11,16 @@ interface LoginForm {
   password: string
 }
 
+/**
+ * Chỉ hiện card "Tài khoản demo" (lộ mật khẩu chung + điền nhanh) ở môi trường
+ * phát triển, HOẶC khi build production bật rõ cờ `VITE_SHOW_DEMO_ACCOUNTS=true`.
+ * Tránh vô tình mang UI lộ mật khẩu ra staging/demo khách hàng ngoài (trước khi
+ * có SSO/IAM thật ở F4).
+ */
+const SHOW_DEMO_ACCOUNTS =
+  import.meta.env.DEV ||
+  (import.meta.env as Record<string, string | undefined>).VITE_SHOW_DEMO_ACCOUNTS === 'true'
+
 export default function Login() {
   const { login } = useAuth()
   const { message } = AntApp.useApp()
@@ -86,7 +96,8 @@ export default function Login() {
           </Form>
         </Card>
 
-        {/* Card tài khoản demo */}
+        {/* Card tài khoản demo — chỉ hiện ở dev hoặc khi bật cờ môi trường (2.5) */}
+        {SHOW_DEMO_ACCOUNTS && (
         <Card style={{ width: 420, flex: '0 0 auto' }} styles={{ body: { paddingBottom: 8 } }}>
           <Title level={5} style={{ margin: 0 }}>
             Tài khoản demo
@@ -137,6 +148,7 @@ export default function Login() {
             ))}
           </div>
         </Card>
+        )}
       </div>
     </div>
   )

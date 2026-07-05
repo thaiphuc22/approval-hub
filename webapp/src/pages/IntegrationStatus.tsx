@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Badge, Card, Col, Row, Space, Tag, Tooltip, Typography } from 'antd'
-import { ApiOutlined } from '@ant-design/icons'
+import { ApiOutlined, ExclamationCircleFilled } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { PageHeader, StatCard, StatusTag } from '../components/ui'
 import {
@@ -101,7 +101,11 @@ function SystemCard({ s }: { s: IntegrationSystem }) {
 function Metric({ label, value, danger }: { label: string; value: React.ReactNode; danger?: boolean }) {
   return (
     <Col span={6} style={{ textAlign: 'center' }}>
-      <div style={{ fontWeight: 700, fontSize: 15, color: danger ? '#cf1322' : undefined }}>{value}</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: danger ? '#cf1322' : undefined }}>
+        {/* Không chỉ dùng màu: kèm icon cảnh báo khi bất thường (WCAG 1.4.1). */}
+        {danger && <ExclamationCircleFilled style={{ fontSize: 11, marginInlineEnd: 3 }} />}
+        {value}
+      </div>
       <Text type="secondary" style={{ fontSize: 10 }}>{label}</Text>
     </Col>
   )

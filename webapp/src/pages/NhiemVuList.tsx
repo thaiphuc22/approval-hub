@@ -13,7 +13,7 @@ import {
 } from '../data/nhiemVu'
 import { useNhiemVu } from '../store/NhiemVuContext'
 import { useDossiers } from '../store/DossierContext'
-import { PageHeader, StatCard, FilterBar, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, FilterBar, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 
 const { Text } = Typography
 
@@ -127,6 +127,7 @@ export default function NhiemVuList() {
         dataSource={rows}
         onRowClick={(r) => navigate(`/nhiem-vu/${encodeURIComponent(r.ma)}`)}
         emptyText="Không có nhiệm vụ khớp bộ lọc."
+        scroll={{ y: LIST_SCROLL_Y }}
       />
     </div>
   )

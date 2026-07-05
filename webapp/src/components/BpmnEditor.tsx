@@ -61,6 +61,12 @@ export interface BpmnEditorHandle {
 interface Props {
   xml?: string
   forms?: FormLite[]
+  /**
+   * Chiều cao vùng canvas khi KHÔNG toàn màn hình. Mặc định '74vh' (giữ tương
+   * thích). Truyền '100%' khi đặt trong khung cha đã ghim chiều cao (flex column)
+   * để canvas + panel/drawer chỉ cuộn nội bộ, tránh cuộn cả trang.
+   */
+  height?: string
 }
 
 /**
@@ -69,7 +75,7 @@ interface Props {
  * toolbar zoom/lưới/undo nổi góc dưới. Chế độ Đơn giản (BA) / Nâng cao (kỹ thuật).
  * Live-lint: element lỗi được đánh dấu ngay trên canvas sau mỗi thay đổi.
  */
-const BpmnEditor = forwardRef<BpmnEditorHandle, Props>(({ xml, forms }, ref) => {
+const BpmnEditor = forwardRef<BpmnEditorHandle, Props>(({ xml, forms, height = '74vh' }, ref) => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const propsRef = useRef<HTMLDivElement>(null)
@@ -343,7 +349,7 @@ const BpmnEditor = forwardRef<BpmnEditorHandle, Props>(({ xml, forms }, ref) => 
     <div
       ref={wrapperRef}
       className={drawerOpen ? 'khcn-drawer-open' : undefined}
-      style={{ position: 'relative', height: isFs ? '100vh' : '74vh', background: '#fff', overflow: 'hidden' }}
+      style={{ position: 'relative', height: isFs ? '100vh' : height, background: '#fff', overflow: 'hidden' }}
     >
       <div ref={containerRef} className="vht-diagram" style={{ height: '100%' }} />
 

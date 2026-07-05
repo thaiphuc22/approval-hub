@@ -106,9 +106,17 @@ export function printOfficialDoc(doc: OfficialDoc): boolean {
   )
   w.document.close()
   w.focus()
-  // Cho trình duyệt render xong rồi mới in.
-  w.onload = () => w.print()
-  setTimeout(() => { try { w.print() } catch { /* noop */ } }, 400)
+  // Cho trình duyệt render xong rồi mới in. Có 2 nguồn kích hoạt (onload + fallback
+  // setTimeout cho trường hợp onload không fire với document.write) nhưng chốt cờ
+  // `printed` để CHỈ gọi print() đúng 1 lần, tránh mở hộp thoại in 2 lần.
+  let printed = false
+  const doPrint = () => {
+    if (printed) return
+    printed = true
+    try { w.print() } catch { /* cửa sổ đã đóng */ }
+  }
+  w.onload = doPrint
+  setTimeout(doPrint, 400)
   return true
 }
 

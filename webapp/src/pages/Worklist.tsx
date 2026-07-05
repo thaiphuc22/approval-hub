@@ -13,11 +13,11 @@ import type { ColumnsType } from 'antd/es/table'
 import { FolderOpenOutlined, FormOutlined } from '@ant-design/icons'
 import type { Dossier } from '../data/dossiers'
 import { useDossiers } from '../store/DossierContext'
+import { useAuth } from '../store/AuthContext'
 import TaskFormModal from '../components/TaskFormModal'
-import { PageHeader, StatCard, EntityTable } from '../components/ui'
+import { PageHeader, StatCard, EntityTable, LIST_SCROLL_Y } from '../components/ui'
 
 const { Text } = Typography
-const CURRENT_USER = 'Nguyễn Gia Vinh'
 const TODAY = '03/07/2026'
 
 function parseVN(dmy?: string): number | null {
@@ -37,6 +37,8 @@ interface Task {
 export default function Worklist() {
   const navigate = useNavigate()
   const { list } = useDossiers()
+  const { user } = useAuth()
+  const currentUser = user?.hoTen ?? 'Người dùng'
   const [formTask, setFormTask] = useState<string | null>(null)
 
   const tasks: Task[] = useMemo(
@@ -128,7 +130,7 @@ export default function Worklist() {
       <Row gutter={14} style={{ margin: '18px 0' }}>
         <Col xs={12} md={8}><StatCard title="Việc chờ xử lý" value={tasks.length} color="#1677ff" /></Col>
         <Col xs={12} md={8}><StatCard title="Quá hạn" value={overdueCount} color="#cf1322" /></Col>
-        <Col xs={24} md={8}><StatCard title="Người xử lý" value={CURRENT_USER} valueStyle={{ fontSize: 18 }} /></Col>
+        <Col xs={24} md={8}><StatCard title="Người xử lý" value={currentUser} valueStyle={{ fontSize: 18 }} /></Col>
       </Row>
 
       <Alert
@@ -144,6 +146,7 @@ export default function Worklist() {
         columns={columns}
         dataSource={tasks}
         emptyText="Không có việc nào chờ xử lý 🎉"
+        scroll={{ y: LIST_SCROLL_Y }}
       />
 
       <TaskFormModal dossierId={formTask} open={!!formTask} onClose={() => setFormTask(null)} />
